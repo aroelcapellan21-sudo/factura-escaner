@@ -172,6 +172,37 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .empty .ei{font-size:44px;margin-bottom:10px;}
 .empty p{font-size:13px;line-height:1.6;}
 
+/* DROPDOWN SELECT */
+.dropdown-wrap{position:relative;margin-bottom:10px;}
+.dropdown-select{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 36px 10px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;width:100%;appearance:none;-webkit-appearance:none;cursor:pointer;transition:border .2s;}
+.dropdown-select:focus{outline:none;border-color:var(--cyan);}
+.dropdown-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--cyan);pointer-events:none;font-size:14px;}
+
+/* DROPDOWN LIST (custom) */
+.custom-select{position:relative;margin-bottom:10px;}
+.custom-select-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 36px 10px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;width:100%;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:border .2s;}
+.custom-select-btn:focus{outline:none;}
+.custom-select-btn.open{border-color:var(--cyan);border-radius:8px 8px 0 0;}
+.custom-select-dropdown{display:none;position:absolute;left:0;right:0;top:100%;background:var(--card);border:1px solid var(--cyan);border-top:none;border-radius:0 0 8px 8px;z-index:50;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.custom-select-dropdown.open{display:block;}
+.custom-select-option{padding:10px 14px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background .15s;display:flex;align-items:center;gap:8px;}
+.custom-select-option:last-child{border-bottom:none;}
+.custom-select-option:hover{background:rgba(0,212,255,0.08);color:var(--cyan);}
+.custom-select-option.new-opt{color:var(--green);}
+.custom-select-option.selected{color:var(--cyan);background:rgba(0,212,255,0.05);}
+.cs-value{color:var(--cyan);font-size:11px;font-family:'Share Tech Mono',monospace;}
+
+/* NEW CHOFER INPUT (shown when "nuevo" selected) */
+.new-chofer-box{background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.3);border-radius:8px;padding:10px;margin-bottom:10px;display:none;}
+.new-chofer-box.visible{display:block;}
+
+/* STICKY TABLE HEADER */
+.tbl-wrap{overflow-x:auto;max-height:320px;overflow-y:auto;}
+.tbl thead th{position:sticky;top:0;z-index:2;background:#151c24;}
+
+/* FIXED SECTION HEADER */
+.section-sticky{position:sticky;top:0;z-index:10;background:var(--bg);padding:10px 0 6px;margin-bottom:0;}
+
 /* LOCKED NOTICE */
 .locked-notice{display:flex;align-items:center;gap:8px;background:rgba(255,140,0,0.08);border:1px solid rgba(255,140,0,0.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
 .locked-notice span{font-size:12px;font-weight:700;color:var(--orange);}
@@ -276,11 +307,22 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <div class="card">
       <div class="card-title">DATOS DEL CHOFER</div>
-      <div class="input-group">
-        <div class="input-label">Nombre del chofer</div>
-        <input class="input-field" id="ch-nombre" placeholder="Nombre completo..." />
+      <div class="input-label" style="margin-bottom:6px;">SELECCIONAR CHOFER</div>
+      <div class="custom-select" id="chofer-cs">
+        <button class="custom-select-btn" onclick="toggleCS('chofer-cs')" type="button">
+          <span id="chofer-cs-label" style="color:var(--muted);">— Elige o crea chofer —</span>
+          <span style="color:var(--cyan);">▾</span>
+        </button>
+        <div class="custom-select-dropdown" id="chofer-cs-dropdown">
+          <div class="custom-select-option new-opt" onclick="selectChofer('__new__')">➕ Nuevo chofer...</div>
+        </div>
       </div>
-      <div class="input-group" style="margin-bottom:0;">
+      <div class="new-chofer-box" id="new-chofer-box">
+        <div class="input-label">NOMBRE DEL NUEVO CHOFER</div>
+        <input class="input-field" id="ch-nombre-new" placeholder="Escribe el nombre..." />
+      </div>
+      <input type="hidden" id="ch-nombre" value="">
+      <div class="input-group" style="margin-bottom:0;margin-top:8px;">
         <div class="input-label">Ficha / Placa</div>
         <input class="input-field" id="ch-ficha" placeholder="Número de ficha..." />
       </div>
@@ -358,7 +400,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div id="compare-date-picker" style="display:none;">
       <div class="card">
         <div class="card-title">ELEGIR FECHA</div>
-        <input type="date" class="date-picker" id="compare-date" />
+        <div class="input-label" style="margin-bottom:6px;">FECHAS DISPONIBLES</div>
+        <div class="custom-select" id="date-cs">
+          <button class="custom-select-btn" onclick="toggleCS('date-cs')" type="button">
+            <span id="date-cs-label" style="color:var(--muted);">— Elige una fecha —</span>
+            <span style="color:var(--cyan);">▾</span>
+          </button>
+          <div class="custom-select-dropdown" id="date-cs-dropdown"></div>
+        </div>
+        <input type="hidden" id="compare-date" value="">
         <button class="btn btn-orange" style="margin-top:10px;font-size:16px;" onclick="loadHistoricCompare()">📂 CARGAR DATOS</button>
       </div>
     </div>
@@ -526,8 +576,8 @@ function goTab(name) {
   const map={cf:0,choferes:1,comparar:2,historial:3};
   document.querySelectorAll('.tab')[map[name]].classList.add('active');
   if(name==='cf') initCFPage();
-  if(name==='choferes') renderDespachoSession();
-  if(name==='comparar') initComparePage();
+  if(name==='choferes') { renderDespachoSession(); populateChoferDropdown(); }
+  if(name==='comparar') { initComparePage(); populateDateDropdown(); }
   if(name==='historial') renderHistorial();
 }
 
@@ -716,8 +766,9 @@ function clearCHImage() {
 async function analyzeCH() {
   if (!chImage) return;
   if (!checkApiKey('ch-status')) return;
-  const chofer = document.getElementById('ch-nombre').value.trim();
-  if (!chofer) { showStatus('ch-status','error','❌ Ingresa el nombre del chofer'); return; }
+  let chofer = document.getElementById('ch-nombre').value.trim();
+  if (!chofer) chofer = document.getElementById('ch-nombre-new')?.value.trim()||'';
+  if (!chofer) { showStatus('ch-status','error','❌ Selecciona o escribe el nombre del chofer'); return; }
 
   showLoader('ch-loader'); hideStatus('ch-status');
   document.getElementById('ch-analyze-btn').disabled = true;
@@ -1256,6 +1307,89 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 // Init
 initCFPage();
 renderDespachoSession();
+// Bind static new-opt button
+(function(){
+  const btn = document.getElementById('cs-static-newopt');
+  if(btn) btn.addEventListener('click', () => selectChofer('__new__'));
+})();
+
+// ════════════════════════════════════════════════════════
+// CUSTOM SELECT / DROPDOWN
+// ════════════════════════════════════════════════════════
+function toggleCS(id) {
+  const cs = document.getElementById(id);
+  const btn = cs.querySelector('.custom-select-btn');
+  const dd = cs.querySelector('.custom-select-dropdown');
+  const isOpen = dd.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.custom-select-dropdown.open').forEach(d=>{
+    d.classList.remove('open');
+    d.previousElementSibling?.classList.remove('open');
+  });
+  if (!isOpen) { dd.classList.add('open'); btn.classList.add('open'); }
+}
+
+function selectChofer(nombre) {
+  const isNew = nombre === '__new__';
+  document.getElementById('ch-nombre').value = isNew ? '' : nombre;
+  document.getElementById('chofer-cs-label').textContent = isNew ? '➕ Nuevo chofer...' : nombre;
+  document.getElementById('chofer-cs-label').style.color = isNew ? 'var(--green)' : 'var(--cyan)';
+  document.getElementById('new-chofer-box').classList.toggle('visible', isNew);
+  // Close dropdown
+  document.getElementById('chofer-cs-dropdown').classList.remove('open');
+  document.getElementById('chofer-cs').querySelector('.custom-select-btn').classList.remove('open');
+}
+
+function populateChoferDropdown() {
+  const dlist = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  const dd = document.getElementById('chofer-cs-dropdown');
+  if (!dd) return;
+  // Build using DOM (no innerHTML with event handlers to avoid escaping issues)
+  dd.innerHTML = '';
+  const newOpt = document.createElement('div');
+  newOpt.className = 'custom-select-option new-opt';
+  newOpt.textContent = '➕ Nuevo chofer...';
+  newOpt.addEventListener('click', () => selectChofer('__new__'));
+  dd.appendChild(newOpt);
+  dlist.forEach(nombre => {
+    const opt = document.createElement('div');
+    opt.className = 'custom-select-option';
+    opt.textContent = nombre;
+    opt.addEventListener('click', () => selectChofer(nombre));
+    dd.appendChild(opt);
+  });
+}
+
+
+function populateDateDropdown() {
+  const dates = Object.keys(JSON.parse(localStorage.getItem('fs_history')||'{}')).sort().reverse();
+  const dd = document.getElementById('date-cs-dropdown');
+  if (!dd) return;
+  if (dates.length === 0) {
+    dd.innerHTML = '<div class="custom-select-option" style="color:var(--muted);">Sin fechas guardadas</div>';
+    return;
+  }
+  dd.innerHTML = dates.map(d => `<div class="custom-select-option" onclick="selectDate('${d}')">${d}</div>`).join('');
+}
+
+function selectDate(date) {
+  document.getElementById('compare-date').value = date;
+  document.getElementById('date-cs-label').textContent = date;
+  document.getElementById('date-cs-label').style.color = 'var(--cyan)';
+  document.getElementById('date-cs-dropdown').classList.remove('open');
+  document.getElementById('date-cs').querySelector('.custom-select-btn').classList.remove('open');
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.custom-select')) {
+    document.querySelectorAll('.custom-select-dropdown.open').forEach(d => {
+      d.classList.remove('open');
+      d.previousElementSibling?.classList.remove('open');
+    });
+  }
+});
+
 </script>
 </body>
 </html>
