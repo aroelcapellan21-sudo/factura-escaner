@@ -2,627 +2,1260 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scanner de Facturas</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FacturaScan Pro</title>
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --card: #1a1a26;
-    --accent: #00e5ff;
-    --accent2: #ff6b35;
-    --green: #00ff9d;
-    --red: #ff4444;
-    --yellow: #ffd600;
-    --text: #e8e8f0;
-    --muted: #6b6b8a;
-    --border: #2a2a3e;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--accent);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  header .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 18px;
-    color: var(--accent);
-    letter-spacing: -1px;
-  }
-  header .logo span { color: var(--accent2); }
-  header .badge {
-    margin-left: auto;
-    background: var(--accent);
-    color: #000;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 20px;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-  .container { max-width: 480px; margin: 0 auto; padding: 20px 16px 100px; }
+:root {
+  --bg: #080c10;
+  --surface: #0f1419;
+  --card: #151c24;
+  --border: #1e2d3d;
+  --cyan: #00d4ff;
+  --green: #00ff88;
+  --orange: #ff8c00;
+  --red: #ff2244;
+  --yellow: #ffd600;
+  --text: #dde8f0;
+  --muted: #4a6070;
+}
 
-  /* Upload zone */
-  .upload-zone {
-    background: var(--card);
-    border: 2px dashed var(--border);
-    border-radius: 16px;
-    padding: 32px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: #1a1a26cc; }
-  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-icon { font-size: 40px; margin-bottom: 10px; }
-  .upload-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--accent);
-    margin-bottom: 6px;
-  }
-  .upload-sub { font-size: 11px; color: var(--muted); }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
-  /* Preview image */
-  .preview-wrap {
-    position: relative;
-    margin-bottom: 16px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 2px solid var(--border);
-  }
-  .preview-wrap img { width: 100%; display: block; max-height: 300px; object-fit: cover; }
-  .preview-wrap .remove-btn {
-    position: absolute;
-    top: 8px; right: 8px;
-    background: var(--red);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 28px; height: 28px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;overflow-x:hidden;}
 
-  /* Analyze button */
-  .btn-analyze {
-    width: 100%;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 12px;
-    padding: 16px;
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
-  }
-  .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #00e5ff44; }
-  .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+/* GRID BG */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 
-  /* Loading */
-  .loading {
-    text-align: center;
-    padding: 30px;
-    color: var(--accent);
-    font-size: 13px;
-    display: none;
-  }
-  .loading .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 12px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* HEADER */
+.header{background:linear-gradient(135deg,#0f1419,#0a1220);border-bottom:2px solid var(--cyan);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,212,255,0.15);}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--cyan);text-shadow:0 0 30px rgba(0,212,255,0.6);}
+.logo span{color:var(--orange);}
+.logo small{font-size:11px;letter-spacing:2px;color:var(--muted);display:block;margin-top:-4px;}
+.hdr-btns{display:flex;gap:8px;}
+.hdr-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.hdr-btn.admin{border-color:var(--orange);color:var(--orange);}
+.hdr-btn:hover{border-color:var(--cyan);color:var(--cyan);}
 
-  /* Factura card */
-  .factura-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .factura-header {
-    background: var(--surface);
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .factura-num {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--accent);
-  }
-  .factura-total {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--green);
-  }
-  .factura-meta {
-    padding: 10px 16px;
-    font-size: 10px;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-  }
+/* TABS */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:80px;padding:11px 6px;text-align:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,212,255,0.05);}
 
-  /* Product table */
-  .product-table { width: 100%; border-collapse: collapse; }
-  .product-table th {
-    background: #0f0f1a;
-    font-size: 9px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 8px 12px;
-    text-align: left;
-  }
-  .product-table th:last-child, .product-table td:last-child { text-align: right; }
-  .product-table td {
-    padding: 10px 12px;
-    font-size: 11px;
-    border-bottom: 1px solid #1e1e2e;
-  }
-  .product-table tr:last-child td { border-bottom: none; }
-  .product-table .qty {
-    display: inline-block;
-    background: var(--accent);
-    color: #000;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 10px;
-  }
-  .product-table .price { color: var(--yellow); }
-  .product-table .subtotal { color: var(--green); font-weight: 700; }
+/* PAGES */
+.page{display:none;padding:14px;position:relative;z-index:1;}
+.page.active{display:block;}
 
-  /* Status badge on product row */
-  .status-badge {
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 9px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.15s;
-  }
-  .status-badge.despachado { background: #00ff9d22; color: var(--green); border: 1px solid var(--green); }
-  .status-badge.pendiente { background: #ff444422; color: var(--red); border: 1px solid var(--red); }
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--cyan);margin-bottom:10px;}
 
-  /* Resumen global */
-  .resumen-section {
-    background: var(--card);
-    border: 2px solid var(--accent2);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  .resumen-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--accent2);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .resumen-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 11px;
-  }
-  .resumen-row:last-child { border-bottom: none; }
-  .resumen-row .prod-name { color: var(--text); flex: 1; }
-  .resumen-row .total-qty {
-    background: var(--surface);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 700;
-    margin: 0 8px;
-    font-size: 10px;
-  }
-  .resumen-row .estado {
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 3px 10px;
-    border-radius: 20px;
-    border: none;
-    transition: all 0.2s;
-  }
-  .resumen-row .estado.ok { background: var(--green); color: #000; }
-  .resumen-row .estado.falta { background: var(--red); color: #fff; }
+/* SCAN ZONE */
+.scan-zone{background:var(--surface);border:2px dashed var(--border);border-radius:12px;padding:24px 14px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:12px;position:relative;overflow:hidden;}
+.scan-zone.locked{border-color:var(--orange);cursor:not-allowed;background:rgba(255,140,0,0.05);}
+.scan-zone:not(.locked):hover{border-color:var(--cyan);}
+.scan-zone.has-image{border-color:var(--green);border-style:solid;}
+.scan-zone .sz-icon{font-size:40px;margin-bottom:8px;}
+.scan-zone .sz-label{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;line-height:1.4;}
+.scan-zone img{width:100%;border-radius:8px;display:none;}
+.scan-zone.has-image img{display:block;}
+.scan-zone.has-image .sz-placeholder{display:none;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:scanAnim 1.5s ease-in-out infinite;display:none;}
+.scanning .scan-line{display:block;}
+@keyframes scanAnim{0%{top:0}100%{top:100%}}
 
-  /* Btn resumen */
-  .btn-resumen {
-    width: 100%;
-    background: var(--accent2);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 14px;
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
-    margin-bottom: 20px;
-    transition: all 0.2s;
-  }
-  .btn-resumen:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #ff6b3544; }
+#cfFileInput,#chFileInput{display:none;}
 
-  /* Faltantes */
-  .faltantes-section {
-    background: #1a0a0a;
-    border: 2px solid var(--red);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-  .faltantes-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--red);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .faltante-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #2a1010;
-    font-size: 11px;
-  }
-  .faltante-item:last-child { border-bottom: none; }
-  .faltante-item .fi-name { color: var(--text); }
-  .faltante-item .fi-qty { color: var(--red); font-weight: 700; }
+/* BUTTONS */
+.btn{width:100%;padding:13px;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;border:none;transition:all .2s;margin-bottom:10px;position:relative;z-index:1;}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,212,255,0.3);}
+.btn-primary:disabled{background:var(--border);color:var(--muted);transform:none;box-shadow:none;cursor:not-allowed;}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-green{background:linear-gradient(135deg,var(--green),#00bb66);color:#000;}
+.btn-orange{background:linear-gradient(135deg,var(--orange),#cc6600);color:#000;}
+.btn-sm{font-size:12px;padding:6px 12px;border-radius:6px;width:auto;margin:0;letter-spacing:1px;}
 
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .empty-state .big { font-size: 40px; margin-bottom: 10px; }
-  .empty-state p { margin-bottom: 6px; }
+/* INPUTS */
+.input-group{margin-bottom:10px;}
+.input-label{font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;}
+.input-field{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;width:100%;transition:border .2s;}
+.input-field:focus{outline:none;border-color:var(--cyan);}
+.input-field[type=password]{font-family:'Share Tech Mono',monospace;letter-spacing:3px;}
 
-  /* Facturas list */
-  #facturas-list { margin-bottom: 16px; }
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:rgba(0,212,255,0.08);color:var(--cyan);padding:7px 5px;text-align:left;font-size:10px;letter-spacing:1px;border-bottom:1px solid var(--border);}
+.tbl td{padding:7px 5px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl td.prod-name{font-weight:700;font-size:11px;max-width:110px;word-break:break-word;line-height:1.3;}
 
-  .error-box {
-    background: #1a0a0a;
-    border: 1px solid var(--red);
-    border-radius: 10px;
-    padding: 14px;
-    font-size: 11px;
-    color: var(--red);
-    margin-bottom: 16px;
-  }
+/* EDITABLE INPUT */
+.qty-input{background:rgba(0,212,255,0.05);border:1px solid var(--border);border-radius:4px;padding:3px 5px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;width:48px;text-align:center;}
+.qty-input:focus{outline:none;border-color:var(--cyan);}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.5px;}
+.badge-green{background:rgba(0,255,136,0.12);color:var(--green);}
+.badge-orange{background:rgba(255,140,0,0.12);color:var(--orange);}
+.badge-red{background:rgba(255,34,68,0.12);color:var(--red);}
+.badge-cyan{background:rgba(0,212,255,0.12);color:var(--cyan);}
+.badge-yellow{background:rgba(255,214,0,0.12);color:var(--yellow);}
+
+/* STATUS */
+.status-bar{border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.status-bar.error{background:rgba(255,34,68,0.08);border:1px solid rgba(255,34,68,0.3);}
+.status-bar.success{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);}
+.status-bar.warn{background:rgba(255,140,0,0.08);border:1px solid rgba(255,140,0,0.3);}
+.status-bar.info{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.3);}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.status-dot.error{background:var(--red);}
+.status-dot.success{background:var(--green);}
+.status-dot.warn{background:var(--orange);}
+.status-dot.info{background:var(--cyan);}
+.status-text{font-size:12px;font-weight:700;letter-spacing:0.5px;line-height:1.4;}
+
+/* LOADER */
+.loader{display:none;text-align:center;padding:24px;}
+.loader.active{display:block;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--cyan);}
+
+/* COMPARE */
+.compare-row-ok td:last-child{color:var(--green);}
+.compare-row-warn td:last-child{color:var(--yellow);}
+.compare-row-err td:last-child{color:var(--red);}
+.diff-positive{color:var(--green);font-family:'Share Tech Mono',monospace;font-weight:700;}
+.diff-negative{color:var(--red);font-family:'Share Tech Mono',monospace;font-weight:700;}
+.diff-zero{color:var(--muted);font-family:'Share Tech Mono',monospace;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;padding:16px;overflow-y:auto;}
+.modal-overlay.active{display:flex;align-items:flex-start;justify-content:center;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:480px;margin:auto;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--orange);margin-bottom:14px;}
+
+/* DRIVER CARD */
+.driver-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+.driver-card:hover{border-color:var(--cyan);background:rgba(0,212,255,0.03);}
+.driver-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--cyan);}
+.driver-meta{font-size:11px;color:var(--muted);letter-spacing:0.5px;margin-top:3px;}
+
+/* MINI PANEL */
+.mini-panel{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-radius:8px;padding:10px;margin-bottom:12px;}
+.mini-panel-title{font-size:10px;letter-spacing:2px;color:var(--cyan);font-weight:700;text-transform:uppercase;margin-bottom:8px;}
+.mini-scroll{max-height:160px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+
+/* SOBRANTE */
+.sobrante-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.sobrante-row:last-child{border-bottom:none;}
+.sobrante-name{flex:1;font-size:12px;font-weight:700;}
+.sobrante-input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;width:60px;text-align:center;}
+.sobrante-input:focus{outline:none;border-color:var(--orange);}
+
+/* HISTORY */
+.hist-day{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+.hist-day:hover{border-color:var(--cyan);}
+.hist-date{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--orange);}
+.hist-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* DATE PICKER STYLE */
+.date-picker{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;width:100%;}
+.date-picker:focus{outline:none;border-color:var(--cyan);}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:36px 16px;color:var(--muted);}
+.empty .ei{font-size:44px;margin-bottom:10px;}
+.empty p{font-size:13px;line-height:1.6;}
+
+/* LOCKED NOTICE */
+.locked-notice{display:flex;align-items:center;gap:8px;background:rgba(255,140,0,0.08);border:1px solid rgba(255,140,0,0.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
+.locked-notice span{font-size:12px;font-weight:700;color:var(--orange);}
+
+/* ROW ACTIONS */
+.row-actions{display:flex;gap:6px;margin-bottom:6px;}
+
+/* SEPARATOR */
+.sep{border:none;border-top:1px solid var(--border);margin:12px 0;}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">FACTURA<span>SCAN</span></div>
-  <div class="badge">IA</div>
-</header>
+<div class="header">
+  <div>
+    <div class="logo">FACTURA<span>SCAN</span></div>
+    <small class="logo" style="font-size:10px;color:var(--muted);letter-spacing:2px;">POLAR BREEZE · SISTEMA DE DESPACHO</small>
+  </div>
+  <div class="hdr-btns">
+    <button class="hdr-btn admin" onclick="openAdmin()">⚙ ADMIN</button>
+  </div>
+</div>
 
-<div class="container">
+<div class="tabs">
+  <div class="tab active" onclick="goTab('cf')">🏭 C.FRÍO</div>
+  <div class="tab" onclick="goTab('choferes')">🚚 CHOFERES</div>
+  <div class="tab" onclick="goTab('comparar')">📊 COMPARAR</div>
+  <div class="tab" onclick="goTab('historial')">📅 HISTORIAL</div>
+</div>
 
-  <!-- Upload -->
-  <div class="upload-zone" id="uploadZone">
-    <input type="file" id="fileInput" accept="image/*" capture="environment">
-    <div class="upload-icon">📸</div>
-    <div class="upload-title">Tira foto a una factura</div>
-    <div class="upload-sub">Toca aquí para abrir la cámara o elegir imagen</div>
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE: CUARTO FRÍO -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page active" id="page-cf">
+
+  <!-- LOCKED STATE -->
+  <div id="cf-locked" style="display:none;margin-top:14px;">
+    <div class="locked-notice">
+      <span>🔒</span>
+      <span>LISTA DEL CUARTO FRÍO YA ESCANEADA HOY — <span id="cf-locked-date"></span></span>
+    </div>
+    <div class="mini-panel">
+      <div class="mini-panel-title">📦 LISTA ESCANEADA HOY</div>
+      <div class="mini-scroll">
+        <table class="tbl" id="cf-mini-table">
+          <thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UNIDADES</th></tr></thead>
+          <tbody id="cf-mini-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="cf-status-locked"></div>
+    <button class="btn btn-secondary" style="font-size:14px;" onclick="requireAdmin(resetCF)">🔓 RESETEAR (ADMIN)</button>
   </div>
 
-  <div id="previewArea"></div>
+  <!-- SCAN STATE -->
+  <div id="cf-scan" style="margin-top:14px;">
+    <input type="file" id="cfFileInput" accept="image/*" capture="environment" onchange="handleCFImage(event)">
 
-  <button class="btn-analyze" id="btnAnalyze" disabled>🔍 Analizar Factura</button>
+    <div class="scan-zone" id="cfScanZone" onclick="document.getElementById('cfFileInput').click()">
+      <div class="scan-line"></div>
+      <div class="sz-placeholder">
+        <div class="sz-icon">🏭</div>
+        <div class="sz-label">FOTO DE LISTA<br>CUARTO FRÍO</div>
+      </div>
+      <img id="cfPreview" src="" alt="">
+    </div>
 
-  <div class="loading" id="loadingDiv">
-    <div class="spinner"></div>
-    Leyendo factura con IA...
+    <div class="row-actions">
+      <button class="btn btn-danger btn-sm" onclick="clearCFImage()">🗑 Borrar</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('cfFileInput').click()">📷 Nueva foto</button>
+    </div>
+
+    <div id="cf-status" style="display:none;margin-top:8px;"></div>
+    <div class="loader" id="cf-loader"><div class="spinner"></div><div class="loader-text">LEYENDO LISTA...</div></div>
+
+    <button class="btn btn-primary" id="cf-analyze-btn" onclick="analyzeCF()" disabled style="margin-top:8px;">🔍 ANALIZAR LISTA</button>
+
+    <!-- RESULT -->
+    <div id="cf-result" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:0;">PRODUCTOS RECIBIDOS</div>
+          <span class="badge badge-cyan" id="cf-count">0 items</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th></tr></thead>
+            <tbody id="cf-result-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <button class="btn btn-green" onclick="saveCF()">💾 GUARDAR LISTA DEL DÍA</button>
+    </div>
   </div>
+</div>
 
-  <div id="errorBox"></div>
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE: CHOFERES -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page" id="page-choferes">
+  <div style="margin-top:14px;">
 
-  <!-- Lista de facturas -->
-  <div id="facturas-list"></div>
+    <div class="card">
+      <div class="card-title">DATOS DEL CHOFER</div>
+      <div class="input-group">
+        <div class="input-label">Nombre del chofer</div>
+        <input class="input-field" id="ch-nombre" placeholder="Nombre completo..." />
+      </div>
+      <div class="input-group" style="margin-bottom:0;">
+        <div class="input-label">Ficha / Placa</div>
+        <input class="input-field" id="ch-ficha" placeholder="Número de ficha..." />
+      </div>
+    </div>
 
-  <!-- Botón resumen -->
-  <div id="resumenControls" style="display:none">
-    <button class="btn-resumen" onclick="mostrarFaltantes()">📋 Ver qué faltó por despachar</button>
+    <input type="file" id="chFileInput" accept="image/*" capture="environment" onchange="handleCHImage(event)">
+
+    <div class="scan-zone" id="chScanZone" onclick="document.getElementById('chFileInput').click()">
+      <div class="scan-line"></div>
+      <div class="sz-placeholder">
+        <div class="sz-icon">📄</div>
+        <div class="sz-label">FOTO DE FACTURA<br>DEL CHOFER</div>
+      </div>
+      <img id="chPreview" src="" alt="">
+    </div>
+
+    <div class="row-actions">
+      <button class="btn btn-danger btn-sm" onclick="clearCHImage()">🗑 Borrar</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('chFileInput').click()">📷 Nueva foto</button>
+    </div>
+
+    <div id="ch-status" style="display:none;margin-top:8px;"></div>
+    <div class="loader" id="ch-loader"><div class="spinner"></div><div class="loader-text">LEYENDO FACTURA...</div></div>
+
+    <button class="btn btn-primary" id="ch-analyze-btn" onclick="analyzeCH()" disabled style="margin-top:8px;">🔍 ANALIZAR FACTURA</button>
+
+    <!-- RESULT -->
+    <div id="ch-result" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:0;" id="ch-result-title">PRODUCTOS</div>
+          <span class="badge badge-cyan" id="ch-count">0 items</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr><th>PRODUCTO</th><th>UND</th><th>CAJAS</th><th>SUELTAS</th></tr></thead>
+            <tbody id="ch-result-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <button class="btn btn-green" onclick="saveCH()">✅ AGREGAR A DESPACHO</button>
+    </div>
+
+    <!-- DESPACHO SESSION -->
+    <hr class="sep">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="card-title" style="margin-bottom:0;">DESPACHO DEL DÍA</div>
+        <span class="badge badge-orange" id="ch-session-count">0 facturas</span>
+      </div>
+      <div id="ch-session-list">
+        <div class="empty"><div class="ei">📋</div><p>Aún no hay facturas.<br>Escanea la primera.</p></div>
+      </div>
+    </div>
+    <button class="btn btn-danger" style="font-size:14px;" onclick="clearDespacho()">🗑 LIMPIAR DESPACHO</button>
   </div>
+</div>
 
-  <!-- Faltantes -->
-  <div id="faltantesSection"></div>
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE: COMPARAR -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page" id="page-comparar">
+  <div style="margin-top:14px;">
 
-  <!-- Resumen total por producto -->
-  <div id="resumenSection"></div>
+    <!-- MODE SELECTOR -->
+    <div class="card">
+      <div class="card-title">MODO DE COMPARACIÓN</div>
+      <div style="display:flex;gap:10px;margin-bottom:0;">
+        <button class="btn btn-primary btn-sm" style="flex:1;font-size:13px;padding:10px;" onclick="setCompareMode('actual')">📊 SESIÓN ACTUAL</button>
+        <button class="btn btn-secondary btn-sm" style="flex:1;font-size:13px;padding:10px;" onclick="setCompareMode('historico')">📅 CARGAR FECHA</button>
+      </div>
+    </div>
 
-  <div id="emptyState" class="empty-state">
-    <div class="big">🧾</div>
-    <p>Escanea tu primera factura</p>
-    <p>La IA leerá los productos, cantidades y precios</p>
+    <!-- HISTORIC DATE PICKER -->
+    <div id="compare-date-picker" style="display:none;">
+      <div class="card">
+        <div class="card-title">ELEGIR FECHA</div>
+        <input type="date" class="date-picker" id="compare-date" />
+        <button class="btn btn-orange" style="margin-top:10px;font-size:16px;" onclick="loadHistoricCompare()">📂 CARGAR DATOS</button>
+      </div>
+    </div>
+
+    <div id="compare-status" style="display:none;margin-bottom:12px;"></div>
+
+    <!-- COMPARE RESULT -->
+    <div id="compare-result" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:0;">COMPARACIÓN</div>
+          <span class="badge badge-cyan" id="compare-date-label">HOY</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr><th>PRODUCTO</th><th>C.FRÍO</th><th>DESPACHO</th><th>DIFF</th></tr></thead>
+            <tbody id="compare-body"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px;">
+            <span>✅ Cuadrados</span><span id="cmp-ok" class="badge badge-green">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px;">
+            <span>⚠️ Sobrante</span><span id="cmp-over" class="badge badge-yellow">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);">
+            <span>❌ Faltante</span><span id="cmp-under" class="badge badge-red">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOBRANTE MANUAL -->
+      <div class="card">
+        <div class="card-title">✏️ SOBRANTE MANUAL</div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.5px;">Ingresa las unidades que quedaron sin despachar</p>
+        <div id="sobrante-list"></div>
+        <button class="btn btn-orange" style="margin-top:10px;font-size:16px;" onclick="saveSobrante()">💾 GUARDAR SOBRANTE</button>
+      </div>
+
+      <button class="btn btn-green" onclick="saveCompareToHistory()">💾 GUARDAR COMPARACIÓN EN HISTORIAL</button>
+    </div>
   </div>
+</div>
 
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE: HISTORIAL -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page" id="page-historial">
+  <div style="margin-top:14px;">
+
+    <!-- VIEW TOGGLE -->
+    <div class="card">
+      <div class="card-title">VER HISTORIAL POR</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary btn-sm" style="flex:1;font-size:13px;padding:10px;" onclick="showHistView('dias')">📅 DÍAS</button>
+        <button class="btn btn-secondary btn-sm" style="flex:1;font-size:13px;padding:10px;" onclick="showHistView('choferes')">🚚 CHOFERES</button>
+      </div>
+    </div>
+
+    <div id="hist-dias">
+      <div id="hist-dias-list"></div>
+    </div>
+
+    <div id="hist-choferes" style="display:none;">
+      <div id="hist-choferes-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- MODALS -->
+<!-- ═══════════════════════════════════════════════════ -->
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-title">⚙ ADMIN</div>
+    <div id="admin-auth">
+      <div class="input-group">
+        <div class="input-label">CONTRASEÑA</div>
+        <input class="input-field" type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')verifyAdmin()" />
+      </div>
+      <button class="btn btn-primary" onclick="verifyAdmin()" style="font-size:18px;">ENTRAR</button>
+      <button class="btn btn-secondary" style="font-size:14px;" onclick="closeModal('adminModal')">CANCELAR</button>
+    </div>
+    <div id="admin-panel" style="display:none;">
+      <div class="input-group">
+        <div class="input-label">🔑 API KEY ANTHROPIC</div>
+        <input class="input-field" type="password" id="admin-apikey" placeholder="sk-ant-..." />
+        <button class="btn btn-primary" style="margin-top:8px;font-size:16px;" onclick="saveApiKey()">GUARDAR API KEY</button>
+      </div>
+      <hr class="sep">
+      <div class="card-title">UNIDADES POR CAJA</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Configura cuántas unidades tiene cada caja por producto</p>
+      <div id="admin-products"></div>
+      <button class="btn btn-green" style="margin-top:10px;font-size:16px;" onclick="saveProductConfig()">💾 GUARDAR CONFIG</button>
+      <hr class="sep">
+      <button class="btn btn-danger" style="font-size:14px;" onclick="clearAllData()">⚠️ BORRAR TODOS LOS DATOS</button>
+      <button class="btn btn-secondary" style="font-size:14px;" onclick="closeModal('adminModal')">CERRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRIVER DETAIL MODAL -->
+<div class="modal-overlay" id="driverModal">
+  <div class="modal">
+    <div class="modal-title" id="dm-title">CHOFER</div>
+    <div id="dm-content"></div>
+    <button class="btn btn-secondary" style="font-size:14px;margin-top:8px;" onclick="closeModal('driverModal')">← VOLVER</button>
+  </div>
+</div>
+
+<!-- DAY DETAIL MODAL -->
+<div class="modal-overlay" id="dayModal">
+  <div class="modal">
+    <div class="modal-title" id="day-title">DÍA</div>
+    <div id="day-content"></div>
+    <button class="btn btn-secondary" style="font-size:14px;margin-top:8px;" onclick="closeModal('dayModal')">← VOLVER</button>
+  </div>
+</div>
+
+<!-- ADMIN CALLBACK MODAL (for inline admin checks) -->
+<div class="modal-overlay" id="adminCbModal">
+  <div class="modal">
+    <div class="modal-title">🔓 CONFIRMAR ADMIN</div>
+    <div class="input-group">
+      <div class="input-label">CONTRASEÑA</div>
+      <input class="input-field" type="password" id="adminCb-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')verifyCbAdmin()" />
+    </div>
+    <button class="btn btn-primary" onclick="verifyCbAdmin()" style="font-size:18px;">CONFIRMAR</button>
+    <button class="btn btn-secondary" style="font-size:14px;" onclick="closeModal('adminCbModal')">CANCELAR</button>
+  </div>
 </div>
 
 <script>
-const API_URL = "https://api.anthropic.com/v1/messages";
-let facturas = []; // [{id, numero, cliente, fecha, productos:[{nombre,cant,precio,subtotal,despachado}], total}]
-let currentImageBase64 = null;
-let facturaCount = 0;
+// ════════════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ════════════════════════════════════════════════════════
+const PASS = 'polar2024';
+const DEFAULT_UPB = 24; // units per box default
+const TODAY = () => new Date().toISOString().split('T')[0];
+const TODAYFMT = () => new Date().toLocaleDateString('es-DO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
 
-// Upload
-const fileInput = document.getElementById('fileInput');
-const btnAnalyze = document.getElementById('btnAnalyze');
-const previewArea = document.getElementById('previewArea');
+let apiKey = localStorage.getItem('fs_apikey') || '';
+let productConfig = JSON.parse(localStorage.getItem('fs_config') || '{}');
+let history = JSON.parse(localStorage.getItem('fs_history') || '{}'); // { date: { cf, despacho, sobrante, comparacion } }
 
-fileInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
+// Session state (not persisted until saved)
+let cfImage = null;
+let cfResult = null; // { productos: [{nombre, cajas, unidades, total}] }
+let chImage = null;
+let chResult = null;
+let despacho = JSON.parse(localStorage.getItem('fs_despacho') || '[]'); // [{chofer,ficha,productos:[{nombre,cantidad}]}]
+let compareMode = 'actual';
+let adminCallback = null;
+
+// ════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════
+function goTab(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const map={cf:0,choferes:1,comparar:2,historial:3};
+  document.querySelectorAll('.tab')[map[name]].classList.add('active');
+  if(name==='cf') initCFPage();
+  if(name==='choferes') renderDespachoSession();
+  if(name==='comparar') initComparePage();
+  if(name==='historial') renderHistorial();
+}
+
+// ════════════════════════════════════════════════════════
+// CUARTO FRÍO
+// ════════════════════════════════════════════════════════
+function initCFPage() {
+  const today = TODAY();
+  const dayData = history[today];
+  if (dayData && dayData.cf) {
+    // Already scanned today
+    document.getElementById('cf-scan').style.display = 'none';
+    document.getElementById('cf-locked').style.display = 'block';
+    document.getElementById('cf-locked-date').textContent = TODAYFMT();
+    renderCFMini(dayData.cf.productos);
+  } else {
+    document.getElementById('cf-scan').style.display = 'block';
+    document.getElementById('cf-locked').style.display = 'none';
+  }
+}
+
+function renderCFMini(productos) {
+  const tbody = document.getElementById('cf-mini-body');
+  tbody.innerHTML = productos.map(p=>`
+    <tr>
+      <td class="prod-name">${p.nombre}</td>
+      <td><span class="badge badge-cyan">${p.cajas}</span></td>
+      <td style="font-family:'Share Tech Mono',monospace;">${p.unidades}</td>
+    </tr>`).join('');
+}
+
+function handleCFImage(e) {
+  const file = e.target.files[0]; if(!file) return;
+  cfImage = file;
   const reader = new FileReader();
   reader.onload = ev => {
-    const b64 = ev.target.result.split(',')[1];
-    currentImageBase64 = b64;
-    previewArea.innerHTML = `
-      <div class="preview-wrap">
-        <img src="${ev.target.result}" alt="Factura">
-        <button class="remove-btn" onclick="clearImage()">✕</button>
-      </div>`;
-    btnAnalyze.disabled = false;
+    document.getElementById('cfPreview').src = ev.target.result;
+    document.getElementById('cfScanZone').classList.add('has-image');
+    document.getElementById('cf-analyze-btn').disabled = false;
+    hideStatus('cf-status');
+    document.getElementById('cf-result').style.display = 'none';
   };
   reader.readAsDataURL(file);
-});
-
-function clearImage() {
-  currentImageBase64 = null;
-  previewArea.innerHTML = '';
-  btnAnalyze.disabled = true;
-  fileInput.value = '';
 }
 
-// Analyze
-btnAnalyze.addEventListener('click', async () => {
-  if (!currentImageBase64) return;
-  btnAnalyze.disabled = true;
-  document.getElementById('loadingDiv').style.display = 'block';
-  document.getElementById('errorBox').innerHTML = '';
-
-  const prompt = `Eres un lector de facturas. Analiza esta imagen de una factura de productos de helados/paletas.
-
-Extrae EXACTAMENTE estos datos en formato JSON puro (sin markdown, sin explicación, solo JSON):
-{
-  "numero_factura": "...",
-  "fecha": "...",
-  "cliente": "...",
-  "vendedor": "...",
-  "productos": [
-    {
-      "nombre": "nombre completo del producto",
-      "cantidad": número,
-      "precio_unitario": número,
-      "subtotal": número
-    }
-  ],
-  "total": número
+function clearCFImage() {
+  cfImage = null; cfResult = null;
+  document.getElementById('cfPreview').src = '';
+  document.getElementById('cfScanZone').classList.remove('has-image');
+  document.getElementById('cfFileInput').value = '';
+  document.getElementById('cf-analyze-btn').disabled = true;
+  document.getElementById('cf-result').style.display = 'none';
+  hideStatus('cf-status');
 }
 
-Si no puedes leer algún campo, pon null. La cantidad es el número de unidades. El precio y subtotal son en RD$.`;
+async function analyzeCF() {
+  if (!cfImage) return;
+  if (!checkApiKey('cf-status')) return;
+
+  showLoader('cf-loader'); hideStatus('cf-status');
+  document.getElementById('cf-analyze-btn').disabled = true;
+  document.getElementById('cfScanZone').classList.add('scanning');
 
   try {
-    const resp = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: currentImageBase64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
+    const b64 = await toBase64(cfImage);
+    const mt = cfImage.type || 'image/jpeg';
+    const prompt = `Eres un asistente que lee listas de despacho de helados en República Dominicana (Polar Breeze / Bon).
+
+Esta es una "Lista para Despacho Cuarto Frío". Tiene columnas: Cajas / Unidades / Descripción.
+
+Extrae TODOS los productos con sus cajas y unidades exactas como aparecen en la lista.
+
+Responde SOLO JSON sin texto adicional ni backticks:
+{"productos":[{"nombre":"PALETA CHOCO MANI 32/1","cajas":2,"unidades":1},{"nombre":"PALETA FUDGE BIZCOCHO 24/1","cajas":4,"unidades":8}]}
+
+Si Cajas es 0, ponlo como 0. Si Unidades es 0, ponlo como 0.
+Nombre = descripción completa incluyendo el número al final (ej: 32/1).`;
+
+    const res = await callAPI([{
+      role:'user',
+      content:[
+        {type:'image',source:{type:'base64',media_type:mt,data:b64}},
+        {type:'text',text:prompt}
+      ]
+    }]);
+
+    const parsed = parseJSON(res);
+    if (!parsed || !parsed.productos) throw new Error('No se pudo leer la lista');
+
+    // Calculate totals
+    cfResult = {
+      productos: parsed.productos.map(p => {
+        const upb = productConfig[p.nombre] || DEFAULT_UPB;
+        const totalUnits = (p.cajas * upb) + p.unidades;
+        return { nombre: p.nombre, cajas: p.cajas, unidades: p.unidades, total: totalUnits };
       })
-    });
-    const data = await resp.json();
-    const rawText = data.content?.map(b => b.text || '').join('') || '';
-    let parsed;
-    try {
-      const clean = rawText.replace(/```json|```/g, '').trim();
-      parsed = JSON.parse(clean);
-    } catch(e) {
-      throw new Error('No se pudo leer la factura. Intenta con una foto más clara.');
-    }
-    facturaCount++;
-    const factura = {
-      id: facturaCount,
-      numero: parsed.numero_factura || `Factura #${facturaCount}`,
-      fecha: parsed.fecha || '—',
-      cliente: parsed.cliente || '—',
-      vendedor: parsed.vendedor || '—',
-      total: parsed.total || 0,
-      productos: (parsed.productos || []).map(p => ({
-        nombre: p.nombre,
-        cantidad: p.cantidad || 0,
-        precio: p.precio_unitario || 0,
-        subtotal: p.subtotal || 0,
-        despachado: true // default: despachado
-      }))
     };
-    facturas.push(factura);
-    renderAll();
-    clearImage();
+
+    renderCFResult(cfResult.productos);
+    showStatus('cf-status','success',`✅ ${cfResult.productos.length} productos leídos`);
+
   } catch(err) {
-    document.getElementById('errorBox').innerHTML = `<div class="error-box">❌ ${err.message}</div>`;
+    showStatus('cf-status','error','❌ '+err.message);
+  } finally {
+    hideLoader('cf-loader');
+    document.getElementById('cf-analyze-btn').disabled = false;
+    document.getElementById('cfScanZone').classList.remove('scanning');
+  }
+}
+
+function renderCFResult(productos) {
+  const tbody = document.getElementById('cf-result-body');
+  document.getElementById('cf-count').textContent = productos.length + ' items';
+  tbody.innerHTML = productos.map((p,i)=>`
+    <tr>
+      <td class="prod-name">${p.nombre}</td>
+      <td><input class="qty-input" type="number" min="0" value="${p.cajas}" id="cf_cajas_${i}" onchange="recalcCF(${i})"></td>
+      <td><input class="qty-input" type="number" min="0" value="${p.unidades}" id="cf_und_${i}" onchange="recalcCF(${i})"></td>
+      <td id="cf_total_${i}" style="font-family:'Share Tech Mono',monospace;color:var(--green);">${p.total}</td>
+    </tr>`).join('');
+  document.getElementById('cf-result').style.display = 'block';
+}
+
+function recalcCF(i) {
+  const p = cfResult.productos[i];
+  const cajas = parseInt(document.getElementById('cf_cajas_'+i).value)||0;
+  const und = parseInt(document.getElementById('cf_und_'+i).value)||0;
+  const upb = productConfig[p.nombre] || DEFAULT_UPB;
+  const total = (cajas*upb)+und;
+  p.cajas=cajas; p.unidades=und; p.total=total;
+  document.getElementById('cf_total_'+i).textContent = total;
+}
+
+function saveCF() {
+  if (!cfResult) return;
+  // Sync from inputs
+  cfResult.productos.forEach((p,i)=>{
+    p.cajas=parseInt(document.getElementById('cf_cajas_'+i)?.value)||p.cajas;
+    p.unidades=parseInt(document.getElementById('cf_und_'+i)?.value)||p.unidades;
+    const upb=productConfig[p.nombre]||DEFAULT_UPB;
+    p.total=(p.cajas*upb)+p.unidades;
+  });
+  const today = TODAY();
+  if (!history[today]) history[today] = {};
+  history[today].cf = { fecha: today, productos: cfResult.productos };
+  saveHistory();
+  showStatus('cf-status','success','✅ Lista guardada — '+TODAYFMT());
+  setTimeout(()=>initCFPage(), 1000);
+}
+
+function resetCF() {
+  const today = TODAY();
+  if (history[today]) delete history[today].cf;
+  saveHistory();
+  clearCFImage();
+  initCFPage();
+}
+
+// ════════════════════════════════════════════════════════
+// CHOFERES / DESPACHO
+// ════════════════════════════════════════════════════════
+function handleCHImage(e) {
+  const file = e.target.files[0]; if(!file) return;
+  chImage = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('chPreview').src = ev.target.result;
+    document.getElementById('chScanZone').classList.add('has-image');
+    document.getElementById('ch-analyze-btn').disabled = false;
+    hideStatus('ch-status');
+    document.getElementById('ch-result').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearCHImage() {
+  chImage = null; chResult = null;
+  document.getElementById('chPreview').src = '';
+  document.getElementById('chScanZone').classList.remove('has-image');
+  document.getElementById('chFileInput').value = '';
+  document.getElementById('ch-analyze-btn').disabled = true;
+  document.getElementById('ch-result').style.display = 'none';
+  hideStatus('ch-status');
+}
+
+async function analyzeCH() {
+  if (!chImage) return;
+  if (!checkApiKey('ch-status')) return;
+  const chofer = document.getElementById('ch-nombre').value.trim();
+  if (!chofer) { showStatus('ch-status','error','❌ Ingresa el nombre del chofer'); return; }
+
+  showLoader('ch-loader'); hideStatus('ch-status');
+  document.getElementById('ch-analyze-btn').disabled = true;
+  document.getElementById('chScanZone').classList.add('scanning');
+
+  try {
+    const b64 = await toBase64(chImage);
+    const mt = chImage.type || 'image/jpeg';
+    const prompt = `Eres un asistente que lee facturas de despacho de helados Polar/Bon en República Dominicana.
+
+Esta es una factura de despacho a un chofer. Tiene columnas: Cant / Descripción / Precio / Total.
+
+Extrae TODOS los productos con su cantidad (Cant).
+
+Responde SOLO JSON sin texto adicional ni backticks:
+{"productos":[{"nombre":"PALETA CHOCO MANI 32/1","cantidad":8},{"nombre":"PALETA FUDGE BIZCOCHO 24/1","cantidad":13}]}
+
+Nombre = descripción completa incluyendo el número al final (ej: 32/1).`;
+
+    const res = await callAPI([{
+      role:'user',
+      content:[
+        {type:'image',source:{type:'base64',media_type:mt,data:b64}},
+        {type:'text',text:prompt}
+      ]
+    }]);
+
+    const parsed = parseJSON(res);
+    if (!parsed || !parsed.productos) throw new Error('No se pudo leer la factura');
+
+    chResult = {
+      chofer, ficha: document.getElementById('ch-ficha').value.trim(),
+      productos: parsed.productos.map(p => {
+        const upb = productConfig[p.nombre] || DEFAULT_UPB;
+        return { nombre: p.nombre, cantidad: p.cantidad, cajas: Math.floor(p.cantidad/upb), sueltas: p.cantidad%upb };
+      })
+    };
+
+    renderCHResult(chResult);
+    showStatus('ch-status','success',`✅ ${chResult.productos.length} productos — ${chofer}`);
+
+  } catch(err) {
+    showStatus('ch-status','error','❌ '+err.message);
+  } finally {
+    hideLoader('ch-loader');
+    document.getElementById('ch-analyze-btn').disabled = false;
+    document.getElementById('chScanZone').classList.remove('scanning');
+  }
+}
+
+function renderCHResult(result) {
+  const tbody = document.getElementById('ch-result-body');
+  document.getElementById('ch-result-title').textContent = result.chofer;
+  document.getElementById('ch-count').textContent = result.productos.length + ' items';
+  tbody.innerHTML = result.productos.map((p,i)=>`
+    <tr>
+      <td class="prod-name">${p.nombre}</td>
+      <td><input class="qty-input" type="number" min="0" value="${p.cantidad}" id="ch_qty_${i}" onchange="recalcCH(${i})"></td>
+      <td><span class="badge badge-green" id="ch_cajas_${i}">${p.cajas}</span></td>
+      <td><span class="badge badge-orange" id="ch_sueltas_${i}">${p.sueltas}</span></td>
+    </tr>`).join('');
+  document.getElementById('ch-result').style.display = 'block';
+}
+
+function recalcCH(i) {
+  const p = chResult.productos[i];
+  const qty = parseInt(document.getElementById('ch_qty_'+i).value)||0;
+  const upb = productConfig[p.nombre]||DEFAULT_UPB;
+  p.cantidad=qty; p.cajas=Math.floor(qty/upb); p.sueltas=qty%upb;
+  document.getElementById('ch_cajas_'+i).textContent=p.cajas;
+  document.getElementById('ch_sueltas_'+i).textContent=p.sueltas;
+}
+
+function saveCH() {
+  if (!chResult) return;
+  // Sync from inputs
+  chResult.productos.forEach((p,i)=>{
+    p.cantidad=parseInt(document.getElementById('ch_qty_'+i)?.value)||p.cantidad;
+    const upb=productConfig[p.nombre]||DEFAULT_UPB;
+    p.cajas=Math.floor(p.cantidad/upb); p.sueltas=p.cantidad%upb;
+  });
+
+  const entry = {
+    id: Date.now(),
+    chofer: chResult.chofer,
+    ficha: chResult.ficha,
+    fecha: TODAY(),
+    hora: new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}),
+    productos: chResult.productos
+  };
+
+  despacho.push(entry);
+  localStorage.setItem('fs_despacho', JSON.stringify(despacho));
+
+  // Save to driver history
+  saveDriverHistory(entry);
+
+  showStatus('ch-status','success','✅ Agregado al despacho');
+  document.getElementById('ch-result').style.display = 'none';
+  clearCHImage();
+  document.getElementById('ch-nombre').value = '';
+  document.getElementById('ch-ficha').value = '';
+  renderDespachoSession();
+}
+
+function saveDriverHistory(entry) {
+  const driverKey = 'fs_driver_'+entry.chofer.replace(/\s+/g,'_');
+  let dh = JSON.parse(localStorage.getItem(driverKey)||'{"nombre":"","historial":[]}');
+  dh.nombre = entry.chofer;
+  dh.historial.push(entry);
+  // Recalculate totals
+  dh.totales = {};
+  dh.historial.forEach(h=>h.productos.forEach(p=>{dh.totales[p.nombre]=(dh.totales[p.nombre]||0)+p.cantidad;}));
+  localStorage.setItem(driverKey, JSON.stringify(dh));
+  // Also track driver list
+  let dlist = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  if (!dlist.includes(entry.chofer)) { dlist.push(entry.chofer); localStorage.setItem('fs_driver_list',JSON.stringify(dlist)); }
+}
+
+function renderDespachoSession() {
+  const list = document.getElementById('ch-session-list');
+  document.getElementById('ch-session-count').textContent = despacho.length + ' facturas';
+  if (despacho.length===0) {
+    list.innerHTML='<div class="empty"><div class="ei">📋</div><p>Aún no hay facturas.</p></div>';
+    return;
+  }
+  list.innerHTML = despacho.map((e,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+      <div>
+        <div style="font-weight:700;font-size:13px;">${e.chofer} <span class="badge badge-orange">${e.ficha||'S/F'}</span></div>
+        <div style="font-size:10px;color:var(--muted);">${e.fecha} ${e.hora} · ${e.productos.length} productos</div>
+      </div>
+      <button onclick="removeDespacho(${i})" style="background:transparent;border:1px solid var(--red);color:var(--red);padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+function removeDespacho(i) {
+  despacho.splice(i,1);
+  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  renderDespachoSession();
+}
+
+function clearDespacho() {
+  if(!confirm('¿Limpiar todo el despacho del día?')) return;
+  despacho=[];
+  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  renderDespachoSession();
+}
+
+// ════════════════════════════════════════════════════════
+// COMPARAR
+// ════════════════════════════════════════════════════════
+function initComparePage() {
+  document.getElementById('compare-result').style.display='none';
+  hideStatus('compare-status');
+}
+
+function setCompareMode(mode) {
+  compareMode = mode;
+  document.getElementById('compare-date-picker').style.display = mode==='historico' ? 'block' : 'none';
+  if (mode==='actual') runCompare();
+}
+
+function loadHistoricCompare() {
+  const date = document.getElementById('compare-date').value;
+  if (!date) { showStatus('compare-status','error','❌ Elige una fecha'); return; }
+  const dayData = history[date];
+  if (!dayData || !dayData.cf) { showStatus('compare-status','error','❌ No hay datos del Cuarto Frío para esa fecha'); return; }
+  runCompare(date, dayData);
+}
+
+function runCompare(date, dayData) {
+  const today = TODAY();
+  const d = date || today;
+  const data = dayData || history[today] || {};
+
+  // Get CF data
+  const cfData = data.cf;
+  if (!cfData) { showStatus('compare-status','warn','⚠️ No hay lista del Cuarto Frío para comparar'); return; }
+
+  // Get despacho data
+  let despachoData = [];
+  if (!date || date===today) {
+    // Use session despacho
+    despachoData = despacho;
+  } else if (data.despacho) {
+    despachoData = data.despacho;
   }
 
-  document.getElementById('loadingDiv').style.display = 'none';
-  btnAnalyze.disabled = false;
+  // Aggregate despacho by product
+  const despachoCounts = {};
+  despachoData.forEach(entry=>{
+    entry.productos.forEach(p=>{
+      despachoCounts[p.nombre]=(despachoCounts[p.nombre]||0)+p.cantidad;
+    });
+  });
+
+  // Build compare table
+  const allProducts = new Set([...cfData.productos.map(p=>p.nombre), ...Object.keys(despachoCounts)]);
+  const rows = [];
+  let ok=0, over=0, under=0;
+
+  allProducts.forEach(nombre=>{
+    const cf = cfData.productos.find(p=>p.nombre===nombre);
+    const cfTotal = cf ? cf.total : 0;
+    const desp = despachoCounts[nombre]||0;
+    const diff = cfTotal - desp;
+    let cls=''; let badge='';
+    if (diff===0) { ok++; badge='<span class="diff-zero">= 0</span>'; }
+    else if (diff>0) { over++; badge=`<span class="diff-positive">+${diff}</span>`; }
+    else { under++; badge=`<span class="diff-negative">${diff}</span>`; }
+    rows.push({nombre,cfTotal,desp,diff,badge});
+  });
+
+  const tbody = document.getElementById('compare-body');
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td class="prod-name">${r.nombre}</td>
+      <td style="font-family:'Share Tech Mono',monospace;">${r.cfTotal}</td>
+      <td style="font-family:'Share Tech Mono',monospace;">${r.desp}</td>
+      <td>${r.badge}</td>
+    </tr>`).join('');
+
+  document.getElementById('cmp-ok').textContent=ok;
+  document.getElementById('cmp-over').textContent=over;
+  document.getElementById('cmp-under').textContent=under;
+  document.getElementById('compare-date-label').textContent = date===today||!date ? 'HOY' : d;
+
+  // Sobrante manual
+  const sobranteList = document.getElementById('sobrante-list');
+  sobranteList.innerHTML = rows.filter(r=>r.diff>0).map(r=>`
+    <div class="sobrante-row">
+      <div class="sobrante-name">${r.nombre}</div>
+      <input class="sobrante-input" type="number" min="0" value="${r.diff}" data-product="${r.nombre}">
+      <span style="font-size:10px;color:var(--muted);">und</span>
+    </div>`).join('') || '<p style="font-size:12px;color:var(--muted);">No hay sobrante.</p>';
+
+  document.getElementById('compare-result').style.display='block';
+  hideStatus('compare-status');
+}
+
+function saveSobrante() {
+  const sobrante = {};
+  document.querySelectorAll('.sobrante-input').forEach(inp=>{
+    sobrante[inp.dataset.product] = parseInt(inp.value)||0;
+  });
+  const today=TODAY();
+  if(!history[today]) history[today]={};
+  history[today].sobrante = sobrante;
+  saveHistory();
+  showStatus('compare-status','success','✅ Sobrante guardado');
+}
+
+function saveCompareToHistory() {
+  const today=TODAY();
+  if(!history[today]) history[today]={};
+  history[today].despacho = despacho;
+  history[today].fecha = today;
+  saveHistory();
+  showStatus('compare-status','success','✅ Comparación guardada en historial');
+}
+
+// ════════════════════════════════════════════════════════
+// HISTORIAL
+// ════════════════════════════════════════════════════════
+let histView = 'dias';
+
+function showHistView(view) {
+  histView = view;
+  document.getElementById('hist-dias').style.display = view==='dias'?'block':'none';
+  document.getElementById('hist-choferes').style.display = view==='choferes'?'block':'none';
+  renderHistorial();
+}
+
+function renderHistorial() {
+  if (histView==='dias') renderHistDias();
+  else renderHistChoferes();
+}
+
+function renderHistDias() {
+  const list = document.getElementById('hist-dias-list');
+  const dates = Object.keys(history).sort().reverse();
+  if (dates.length===0) {
+    list.innerHTML='<div class="empty"><div class="ei">📅</div><p>No hay datos guardados aún.</p></div>';
+    return;
+  }
+  list.innerHTML = dates.map(d=>{
+    const data = history[d];
+    const cfCount = data.cf ? data.cf.productos.length : 0;
+    const despCount = data.despacho ? data.despacho.length : 0;
+    return `<div class="hist-day" onclick="showDayDetail('${d}')">
+      <div class="hist-date">${d}</div>
+      <div class="hist-meta">🏭 C.Frío: ${cfCount} productos · 🚚 Despacho: ${despCount} facturas</div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistChoferes() {
+  const list = document.getElementById('hist-choferes-list');
+  const driverList = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  if (driverList.length===0) {
+    list.innerHTML='<div class="empty"><div class="ei">🚚</div><p>No hay choferes registrados.</p></div>';
+    return;
+  }
+  list.innerHTML = driverList.map(nombre=>{
+    const key='fs_driver_'+nombre.replace(/\s+/g,'_');
+    const dh=JSON.parse(localStorage.getItem(key)||'{"historial":[]}');
+    return `<div class="driver-card" onclick="showDriverDetail('${nombre}')">
+      <div class="driver-name">${nombre}</div>
+      <div class="driver-meta">📋 ${dh.historial.length} facturas en historial</div>
+    </div>`;
+  }).join('');
+  list.innerHTML += `<button class="btn btn-danger" style="font-size:13px;" onclick="requireAdmin(clearAllDrivers)">🗑 BORRAR HISTORIAL CHOFERES (ADMIN)</button>`;
+}
+
+function showDayDetail(date) {
+  const data = history[date];
+  if (!data) return;
+  let html = '';
+
+  if (data.cf) {
+    html+=`<div class="card-title" style="margin-bottom:8px;">🏭 CUARTO FRÍO</div>
+    <div style="overflow-x:auto;margin-bottom:14px;">
+    <table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th></tr></thead>
+    <tbody>${data.cf.productos.map(p=>`<tr><td class="prod-name">${p.nombre}</td><td>${p.cajas}</td><td>${p.unidades}</td><td style="font-family:'Share Tech Mono',monospace;color:var(--green);">${p.total}</td></tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  if (data.despacho && data.despacho.length>0) {
+    html+=`<div class="card-title" style="margin-bottom:8px;">🚚 DESPACHO</div>`;
+    data.despacho.forEach(e=>{
+      html+=`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div style="font-weight:700;font-size:13px;">${e.chofer} <span class="badge badge-orange">${e.ficha||'S/F'}</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${e.productos.map(p=>p.nombre+' ×'+p.cantidad).join(' · ')}</div>
+      </div>`;
+    });
+  }
+
+  if (data.sobrante && Object.keys(data.sobrante).length>0) {
+    html+=`<div class="card-title" style="margin:12px 0 8px;">📦 SOBRANTE</div>`;
+    Object.entries(data.sobrante).forEach(([n,v])=>{
+      html+=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;">
+        <span>${n}</span><span class="badge badge-yellow">${v} und</span></div>`;
+    });
+  }
+
+  document.getElementById('day-title').textContent = date;
+  document.getElementById('day-content').innerHTML = html || '<p style="color:var(--muted);font-size:13px;">Sin datos para este día.</p>';
+  document.getElementById('dayModal').classList.add('active');
+}
+
+function showDriverDetail(nombre) {
+  const key='fs_driver_'+nombre.replace(/\s+/g,'_');
+  const dh=JSON.parse(localStorage.getItem(key)||'{"nombre":"","historial":[],"totales":{}}');
+
+  let html='';
+
+  // Totals
+  if (dh.totales && Object.keys(dh.totales).length>0) {
+    html+=`<div class="card-title" style="margin-bottom:8px;">TOTAL ACUMULADO</div>
+    <div style="overflow-x:auto;margin-bottom:14px;">
+    <table class="tbl"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th><th>SUELTAS</th></tr></thead>
+    <tbody>${Object.entries(dh.totales).map(([n,v])=>{
+      const upb=productConfig[n]||DEFAULT_UPB;
+      const cajas=Math.floor(v/upb); const sueltas=v%upb;
+      return `<tr><td class="prod-name">${n}</td><td style="font-family:'Share Tech Mono',monospace;">${v}</td><td><span class="badge badge-green">${cajas}</span></td><td><span class="badge badge-orange">${sueltas}</span></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+  }
+
+  // History
+  html+=`<div class="card-title" style="margin-bottom:8px;">HISTORIAL (${dh.historial.length})</div>`;
+  [...dh.historial].reverse().forEach(h=>{
+    html+=`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div style="font-size:12px;font-weight:700;">${h.fecha} ${h.hora} <span class="badge badge-orange">${h.ficha||'S/F'}</span></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${h.productos.map(p=>p.nombre+' ×'+p.cantidad).join(' · ')}</div>
+    </div>`;
+  });
+
+  document.getElementById('dm-title').textContent = nombre;
+  document.getElementById('dm-content').innerHTML = html;
+  document.getElementById('driverModal').classList.add('active');
+}
+
+function clearAllDrivers() {
+  const dlist=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  dlist.forEach(n=>localStorage.removeItem('fs_driver_'+n.replace(/\s+/g,'_')));
+  localStorage.removeItem('fs_driver_list');
+  renderHistorial();
+  closeModal('driverModal');
+}
+
+// ════════════════════════════════════════════════════════
+// ADMIN
+// ════════════════════════════════════════════════════════
+function openAdmin() {
+  document.getElementById('admin-auth').style.display='block';
+  document.getElementById('admin-panel').style.display='none';
+  document.getElementById('admin-pass').value='';
+  document.getElementById('adminModal').classList.add('active');
+}
+
+function verifyAdmin() {
+  if (document.getElementById('admin-pass').value===PASS) {
+    document.getElementById('admin-auth').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    document.getElementById('admin-apikey').value=apiKey;
+    renderAdminProducts();
+  } else {
+    document.getElementById('admin-pass').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('admin-pass').style.borderColor='',800);
+  }
+}
+
+function renderAdminProducts() {
+  // Collect all known products
+  const all = new Set();
+  Object.values(history).forEach(d=>{
+    if(d.cf) d.cf.productos.forEach(p=>all.add(p.nombre));
+    if(d.despacho) d.despacho.forEach(e=>e.productos.forEach(p=>all.add(p.nombre)));
+  });
+  despacho.forEach(e=>e.productos.forEach(p=>all.add(p.nombre)));
+  if(cfResult) cfResult.productos.forEach(p=>all.add(p.nombre));
+
+  const el=document.getElementById('admin-products');
+  if(all.size===0){el.innerHTML='<p style="font-size:11px;color:var(--muted);">Analiza facturas primero.</p>';return;}
+  el.innerHTML=[...all].map(n=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+      <div style="flex:1;font-size:11px;font-weight:700;">${n}</div>
+      <input style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;width:55px;text-align:center;" type="number" min="1" value="${productConfig[n]||DEFAULT_UPB}" data-p="${n}">
+      <span style="font-size:10px;color:var(--muted);">u/cja</span>
+    </div>`).join('');
+}
+
+function saveApiKey() {
+  apiKey=document.getElementById('admin-apikey').value.trim();
+  localStorage.setItem('fs_apikey',apiKey);
+  alert('✅ API Key guardada');
+}
+
+function saveProductConfig() {
+  document.querySelectorAll('[data-p]').forEach(inp=>{
+    productConfig[inp.dataset.p]=parseInt(inp.value)||DEFAULT_UPB;
+  });
+  localStorage.setItem('fs_config',JSON.stringify(productConfig));
+  alert('✅ Configuración guardada');
+  closeModal('adminModal');
+}
+
+function clearAllData() {
+  if(!confirm('⚠️ ¿Borrar TODOS los datos? Esto no se puede deshacer.')) return;
+  localStorage.clear();
+  location.reload();
+}
+
+// Inline admin check
+function requireAdmin(callback) {
+  adminCallback = callback;
+  document.getElementById('adminCb-pass').value='';
+  document.getElementById('adminCbModal').classList.add('active');
+}
+
+function verifyCbAdmin() {
+  if(document.getElementById('adminCb-pass').value===PASS){
+    closeModal('adminCbModal');
+    if(adminCallback) adminCallback();
+    adminCallback=null;
+  } else {
+    document.getElementById('adminCb-pass').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('adminCb-pass').style.borderColor='',800);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════════════
+async function callAPI(messages) {
+  const key=apiKey||localStorage.getItem('fs_apikey')||'';
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model:'claude-opus-4-5',max_tokens:2000,messages})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Error API '+res.status);}
+  const data=await res.json();
+  return data.content[0].text.trim();
+}
+
+function parseJSON(text) {
+  try{return JSON.parse(text);}catch{
+    const m=text.match(/\{[\s\S]*\}/);
+    if(m) try{return JSON.parse(m[0]);}catch{}
+  }
+  return null;
+}
+
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result.split(',')[1]);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function checkApiKey(statusId) {
+  const key=apiKey||localStorage.getItem('fs_apikey')||'';
+  if(!key){showStatus(statusId,'error','❌ Configura tu API Key en ADMIN primero');return false;}
+  return true;
+}
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function showStatus(id,type,msg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.display='flex';
+  el.className='status-bar '+type;
+  el.innerHTML=`<div class="status-dot ${type}"></div><div class="status-text">${msg}</div>`;
+}
+function hideStatus(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+function showLoader(id){document.getElementById(id)?.classList.add('active');}
+function hideLoader(id){document.getElementById(id)?.classList.remove('active');}
+function closeModal(id){document.getElementById(id)?.classList.remove('active');}
+function saveHistory(){localStorage.setItem('fs_history',JSON.stringify(history));}
+
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('active');});
 });
 
-function toggleProducto(facturaId, prodIdx) {
-  const f = facturas.find(x => x.id === facturaId);
-  if (!f) return;
-  f.productos[prodIdx].despachado = !f.productos[prodIdx].despachado;
-  renderAll();
-}
-
-function renderAll() {
-  document.getElementById('emptyState').style.display = facturas.length ? 'none' : 'block';
-  document.getElementById('resumenControls').style.display = facturas.length ? 'block' : 'none';
-
-  // Render facturas
-  const list = document.getElementById('facturas-list');
-  list.innerHTML = facturas.map(f => `
-    <div class="factura-card">
-      <div class="factura-header">
-        <div class="factura-num">🧾 ${f.numero}</div>
-        <div class="factura-total">RD$${f.total.toLocaleString()}</div>
-      </div>
-      <div class="factura-meta">
-        📅 ${f.fecha} &nbsp;|&nbsp; 👤 ${f.cliente} &nbsp;|&nbsp; 🏪 ${f.vendedor}
-      </div>
-      <table class="product-table">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Cant</th>
-            <th>Precio</th>
-            <th>Total</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${f.productos.map((p, i) => `
-            <tr>
-              <td>${p.nombre}</td>
-              <td><span class="qty">${p.cantidad}</span></td>
-              <td class="price">$${p.precio.toLocaleString()}</td>
-              <td class="subtotal">$${p.subtotal.toLocaleString()}</td>
-              <td>
-                <span class="status-badge ${p.despachado ? 'despachado' : 'pendiente'}"
-                  onclick="toggleProducto(${f.id}, ${i})">
-                  ${p.despachado ? '✅ OK' : '❌ Falta'}
-                </span>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `).join('');
-
-  // Clear faltantes when re-rendering
-  document.getElementById('faltantesSection').innerHTML = '';
-  document.getElementById('resumenSection').innerHTML = '';
-}
-
-function mostrarFaltantes() {
-  // Agrupar productos pendientes por nombre
-  const pendientes = {};
-  facturas.forEach(f => {
-    f.productos.forEach(p => {
-      if (!p.despachado) {
-        const key = p.nombre.toUpperCase();
-        if (!pendientes[key]) pendientes[key] = { nombre: p.nombre, cantidad: 0 };
-        pendientes[key].cantidad += p.cantidad;
-      }
-    });
-  });
-
-  const faltantesEl = document.getElementById('faltantesSection');
-  const resumenEl = document.getElementById('resumenSection');
-
-  const lista = Object.values(pendientes);
-  if (lista.length === 0) {
-    faltantesEl.innerHTML = `
-      <div class="resumen-section" style="border-color:var(--green)">
-        <div class="resumen-title" style="color:var(--green)">✅ Todo despachado</div>
-        <p style="font-size:12px;color:var(--muted)">Todos los productos están marcados como despachados.</p>
-      </div>`;
-  } else {
-    faltantesEl.innerHTML = `
-      <div class="faltantes-section">
-        <div class="faltantes-title">❌ Productos PENDIENTES por despachar (${lista.length})</div>
-        ${lista.map(p => `
-          <div class="faltante-item">
-            <span class="fi-name">${p.nombre}</span>
-            <span class="fi-qty">${p.cantidad} unid.</span>
-          </div>
-        `).join('')}
-      </div>`;
-  }
-
-  // Resumen total
-  const todos = {};
-  facturas.forEach(f => {
-    f.productos.forEach(p => {
-      const key = p.nombre.toUpperCase();
-      if (!todos[key]) todos[key] = { nombre: p.nombre, cantidad: 0, despachado: 0 };
-      todos[key].cantidad += p.cantidad;
-      if (p.despachado) todos[key].despachado += p.cantidad;
-    });
-  });
-
-  resumenEl.innerHTML = `
-    <div class="resumen-section">
-      <div class="resumen-title">📊 Resumen Total por Producto</div>
-      ${Object.values(todos).map(p => `
-        <div class="resumen-row">
-          <span class="prod-name">${p.nombre}</span>
-          <span class="total-qty">${p.despachado}/${p.cantidad}</span>
-          <button class="estado ${p.despachado >= p.cantidad ? 'ok' : 'falta'}">
-            ${p.despachado >= p.cantidad ? '✅ Completo' : `❌ Falta ${p.cantidad - p.despachado}`}
-          </button>
-        </div>
-      `).join('')}
-    </div>`;
-
-  faltantesEl.scrollIntoView({ behavior: 'smooth' });
-}
+// Init
+initCFPage();
+renderDespachoSession();
 </script>
 </body>
 </html>
