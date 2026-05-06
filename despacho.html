@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner de Facturas</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --green: #00ff9d;
+    --red: #ff4444;
+    --yellow: #ffd600;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --border: #2a2a3e;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: -1px;
+  }
+  header .logo span { color: var(--accent2); }
+  header .badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .container { max-width: 480px; margin: 0 auto; padding: 20px 16px 100px; }
+
+  /* Upload zone */
+  .upload-zone {
+    background: var(--card);
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: #1a1a26cc; }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-icon { font-size: 40px; margin-bottom: 10px; }
+  .upload-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .upload-sub { font-size: 11px; color: var(--muted); }
+
+  /* Preview image */
+  .preview-wrap {
+    position: relative;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+  }
+  .preview-wrap img { width: 100%; display: block; max-height: 300px; object-fit: cover; }
+  .preview-wrap .remove-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Analyze button */
+  .btn-analyze {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #00e5ff44; }
+  .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 30px;
+    color: var(--accent);
+    font-size: 13px;
+    display: none;
+  }
+  .loading .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Factura card */
+  .factura-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .factura-header {
+    background: var(--surface);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .factura-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .factura-total {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .factura-meta {
+    padding: 10px 16px;
+    font-size: 10px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Product table */
+  .product-table { width: 100%; border-collapse: collapse; }
+  .product-table th {
+    background: #0f0f1a;
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .product-table th:last-child, .product-table td:last-child { text-align: right; }
+  .product-table td {
+    padding: 10px 12px;
+    font-size: 11px;
+    border-bottom: 1px solid #1e1e2e;
+  }
+  .product-table tr:last-child td { border-bottom: none; }
+  .product-table .qty {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+  }
+  .product-table .price { color: var(--yellow); }
+  .product-table .subtotal { color: var(--green); font-weight: 700; }
+
+  /* Status badge on product row */
+  .status-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .status-badge.despachado { background: #00ff9d22; color: var(--green); border: 1px solid var(--green); }
+  .status-badge.pendiente { background: #ff444422; color: var(--red); border: 1px solid var(--red); }
+
+  /* Resumen global */
+  .resumen-section {
+    background: var(--card);
+    border: 2px solid var(--accent2);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .resumen-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--accent2);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .resumen-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .resumen-row:last-child { border-bottom: none; }
+  .resumen-row .prod-name { color: var(--text); flex: 1; }
+  .resumen-row .total-qty {
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    margin: 0 8px;
+    font-size: 10px;
+  }
+  .resumen-row .estado {
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: none;
+    transition: all 0.2s;
+  }
+  .resumen-row .estado.ok { background: var(--green); color: #000; }
+  .resumen-row .estado.falta { background: var(--red); color: #fff; }
+
+  /* Btn resumen */
+  .btn-resumen {
+    width: 100%;
+    background: var(--accent2);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+  }
+  .btn-resumen:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #ff6b3544; }
+
+  /* Faltantes */
+  .faltantes-section {
+    background: #1a0a0a;
+    border: 2px solid var(--red);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .faltantes-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--red);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .faltante-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #2a1010;
+    font-size: 11px;
+  }
+  .faltante-item:last-child { border-bottom: none; }
+  .faltante-item .fi-name { color: var(--text); }
+  .faltante-item .fi-qty { color: var(--red); font-weight: 700; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .empty-state .big { font-size: 40px; margin-bottom: 10px; }
+  .empty-state p { margin-bottom: 6px; }
+
+  /* Facturas list */
+  #facturas-list { margin-bottom: 16px; }
+
+  .error-box {
+    background: #1a0a0a;
+    border: 1px solid var(--red);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 11px;
+    color: var(--red);
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">FACTURA<span>SCAN</span></div>
+  <div class="badge">IA</div>
+</header>
+
+<div class="container">
+
+  <!-- Upload -->
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept="image/*" capture="environment">
+    <div class="upload-icon">📸</div>
+    <div class="upload-title">Tira foto a una factura</div>
+    <div class="upload-sub">Toca aquí para abrir la cámara o elegir imagen</div>
+  </div>
+
+  <div id="previewArea"></div>
+
+  <button class="btn-analyze" id="btnAnalyze" disabled>🔍 Analizar Factura</button>
+
+  <div class="loading" id="loadingDiv">
+    <div class="spinner"></div>
+    Leyendo factura con IA...
+  </div>
+
+  <div id="errorBox"></div>
+
+  <!-- Lista de facturas -->
+  <div id="facturas-list"></div>
+
+  <!-- Botón resumen -->
+  <div id="resumenControls" style="display:none">
+    <button class="btn-resumen" onclick="mostrarFaltantes()">📋 Ver qué faltó por despachar</button>
+  </div>
+
+  <!-- Faltantes -->
+  <div id="faltantesSection"></div>
+
+  <!-- Resumen total por producto -->
+  <div id="resumenSection"></div>
+
+  <div id="emptyState" class="empty-state">
+    <div class="big">🧾</div>
+    <p>Escanea tu primera factura</p>
+    <p>La IA leerá los productos, cantidades y precios</p>
+  </div>
+
+</div>
+
+<script>
+const API_URL = "https://api.anthropic.com/v1/messages";
+let facturas = []; // [{id, numero, cliente, fecha, productos:[{nombre,cant,precio,subtotal,despachado}], total}]
+let currentImageBase64 = null;
+let facturaCount = 0;
+
+// Upload
+const fileInput = document.getElementById('fileInput');
+const btnAnalyze = document.getElementById('btnAnalyze');
+const previewArea = document.getElementById('previewArea');
+
+fileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const b64 = ev.target.result.split(',')[1];
+    currentImageBase64 = b64;
+    previewArea.innerHTML = `
+      <div class="preview-wrap">
+        <img src="${ev.target.result}" alt="Factura">
+        <button class="remove-btn" onclick="clearImage()">✕</button>
+      </div>`;
+    btnAnalyze.disabled = false;
+  };
+  reader.readAsDataURL(file);
+});
+
+function clearImage() {
+  currentImageBase64 = null;
+  previewArea.innerHTML = '';
+  btnAnalyze.disabled = true;
+  fileInput.value = '';
+}
+
+// Analyze
+btnAnalyze.addEventListener('click', async () => {
+  if (!currentImageBase64) return;
+  btnAnalyze.disabled = true;
+  document.getElementById('loadingDiv').style.display = 'block';
+  document.getElementById('errorBox').innerHTML = '';
+
+  const prompt = `Eres un lector de facturas. Analiza esta imagen de una factura de productos de helados/paletas.
+
+Extrae EXACTAMENTE estos datos en formato JSON puro (sin markdown, sin explicación, solo JSON):
+{
+  "numero_factura": "...",
+  "fecha": "...",
+  "cliente": "...",
+  "vendedor": "...",
+  "productos": [
+    {
+      "nombre": "nombre completo del producto",
+      "cantidad": número,
+      "precio_unitario": número,
+      "subtotal": número
+    }
+  ],
+  "total": número
+}
+
+Si no puedes leer algún campo, pon null. La cantidad es el número de unidades. El precio y subtotal son en RD$.`;
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: currentImageBase64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+    const data = await resp.json();
+    const rawText = data.content?.map(b => b.text || '').join('') || '';
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      throw new Error('No se pudo leer la factura. Intenta con una foto más clara.');
+    }
+    facturaCount++;
+    const factura = {
+      id: facturaCount,
+      numero: parsed.numero_factura || `Factura #${facturaCount}`,
+      fecha: parsed.fecha || '—',
+      cliente: parsed.cliente || '—',
+      vendedor: parsed.vendedor || '—',
+      total: parsed.total || 0,
+      productos: (parsed.productos || []).map(p => ({
+        nombre: p.nombre,
+        cantidad: p.cantidad || 0,
+        precio: p.precio_unitario || 0,
+        subtotal: p.subtotal || 0,
+        despachado: true // default: despachado
+      }))
+    };
+    facturas.push(factura);
+    renderAll();
+    clearImage();
+  } catch(err) {
+    document.getElementById('errorBox').innerHTML = `<div class="error-box">❌ ${err.message}</div>`;
+  }
+
+  document.getElementById('loadingDiv').style.display = 'none';
+  btnAnalyze.disabled = false;
+});
+
+function toggleProducto(facturaId, prodIdx) {
+  const f = facturas.find(x => x.id === facturaId);
+  if (!f) return;
+  f.productos[prodIdx].despachado = !f.productos[prodIdx].despachado;
+  renderAll();
+}
+
+function renderAll() {
+  document.getElementById('emptyState').style.display = facturas.length ? 'none' : 'block';
+  document.getElementById('resumenControls').style.display = facturas.length ? 'block' : 'none';
+
+  // Render facturas
+  const list = document.getElementById('facturas-list');
+  list.innerHTML = facturas.map(f => `
+    <div class="factura-card">
+      <div class="factura-header">
+        <div class="factura-num">🧾 ${f.numero}</div>
+        <div class="factura-total">RD$${f.total.toLocaleString()}</div>
+      </div>
+      <div class="factura-meta">
+        📅 ${f.fecha} &nbsp;|&nbsp; 👤 ${f.cliente} &nbsp;|&nbsp; 🏪 ${f.vendedor}
+      </div>
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cant</th>
+            <th>Precio</th>
+            <th>Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${f.productos.map((p, i) => `
+            <tr>
+              <td>${p.nombre}</td>
+              <td><span class="qty">${p.cantidad}</span></td>
+              <td class="price">$${p.precio.toLocaleString()}</td>
+              <td class="subtotal">$${p.subtotal.toLocaleString()}</td>
+              <td>
+                <span class="status-badge ${p.despachado ? 'despachado' : 'pendiente'}"
+                  onclick="toggleProducto(${f.id}, ${i})">
+                  ${p.despachado ? '✅ OK' : '❌ Falta'}
+                </span>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `).join('');
+
+  // Clear faltantes when re-rendering
+  document.getElementById('faltantesSection').innerHTML = '';
+  document.getElementById('resumenSection').innerHTML = '';
+}
+
+function mostrarFaltantes() {
+  // Agrupar productos pendientes por nombre
+  const pendientes = {};
+  facturas.forEach(f => {
+    f.productos.forEach(p => {
+      if (!p.despachado) {
+        const key = p.nombre.toUpperCase();
+        if (!pendientes[key]) pendientes[key] = { nombre: p.nombre, cantidad: 0 };
+        pendientes[key].cantidad += p.cantidad;
+      }
+    });
+  });
+
+  const faltantesEl = document.getElementById('faltantesSection');
+  const resumenEl = document.getElementById('resumenSection');
+
+  const lista = Object.values(pendientes);
+  if (lista.length === 0) {
+    faltantesEl.innerHTML = `
+      <div class="resumen-section" style="border-color:var(--green)">
+        <div class="resumen-title" style="color:var(--green)">✅ Todo despachado</div>
+        <p style="font-size:12px;color:var(--muted)">Todos los productos están marcados como despachados.</p>
+      </div>`;
+  } else {
+    faltantesEl.innerHTML = `
+      <div class="faltantes-section">
+        <div class="faltantes-title">❌ Productos PENDIENTES por despachar (${lista.length})</div>
+        ${lista.map(p => `
+          <div class="faltante-item">
+            <span class="fi-name">${p.nombre}</span>
+            <span class="fi-qty">${p.cantidad} unid.</span>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  // Resumen total
+  const todos = {};
+  facturas.forEach(f => {
+    f.productos.forEach(p => {
+      const key = p.nombre.toUpperCase();
+      if (!todos[key]) todos[key] = { nombre: p.nombre, cantidad: 0, despachado: 0 };
+      todos[key].cantidad += p.cantidad;
+      if (p.despachado) todos[key].despachado += p.cantidad;
+    });
+  });
+
+  resumenEl.innerHTML = `
+    <div class="resumen-section">
+      <div class="resumen-title">📊 Resumen Total por Producto</div>
+      ${Object.values(todos).map(p => `
+        <div class="resumen-row">
+          <span class="prod-name">${p.nombre}</span>
+          <span class="total-qty">${p.despachado}/${p.cantidad}</span>
+          <button class="estado ${p.despachado >= p.cantidad ? 'ok' : 'falta'}">
+            ${p.despachado >= p.cantidad ? '✅ Completo' : `❌ Falta ${p.cantidad - p.despachado}`}
+          </button>
+        </div>
+      `).join('')}
+    </div>`;
+
+  faltantesEl.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
