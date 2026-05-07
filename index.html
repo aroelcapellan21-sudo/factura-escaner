@@ -19,20 +19,57 @@
   --yellow: #ffd600;
   --text: #dde8f0;
   --muted: #4a6070;
+  --header-bg1: #0f1419;
+  --header-bg2: #0a1220;
+  --header-bg3: #0d1520;
+  --grid-color: rgba(0,212,255,0.03);
 }
+
+/* LIGHT THEME */
+body.light {
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --border: #d0dce8;
+  --cyan: #0088bb;
+  --green: #00aa55;
+  --orange: #e06600;
+  --red: #cc1133;
+  --yellow: #cc9900;
+  --text: #1a2530;
+  --muted: #7a90a0;
+  --header-bg1: #003855;
+  --header-bg2: #002940;
+  --header-bg3: #003050;
+  --grid-color: rgba(0,136,187,0.05);
+}
+body.light .tbl thead th { background: rgba(0,136,187,0.1); }
+body.light .badge-green { background: rgba(0,170,85,0.12); }
+body.light .badge-orange { background: rgba(224,102,0,0.12); }
+body.light .badge-red { background: rgba(204,17,51,0.12); }
+body.light .badge-cyan { background: rgba(0,136,187,0.12); }
+body.light .badge-yellow { background: rgba(204,153,0,0.12); }
+body.light .custom-select-dropdown { background: #fff; border-color: var(--cyan); }
+body.light .custom-select-option:hover { background: rgba(0,136,187,0.08); }
+body.light .mini-panel { background: rgba(0,136,187,0.04); border-color: rgba(0,136,187,0.2); }
+body.light .new-chofer-box { background: rgba(0,170,85,0.05); border-color: rgba(0,170,85,0.3); }
+body.light .scan-zone { background: #f8fbff; }
+body.light .qty-input { background: rgba(0,136,187,0.05); }
+body.light body::before { background-image: linear-gradient(rgba(0,136,187,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,136,187,0.05) 1px,transparent 1px); }
 
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
 body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;overflow-x:hidden;}
 
 /* GRID BG */
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--grid-color) 1px,transparent 1px),linear-gradient(90deg,var(--grid-color) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 
 /* HEADER */
-.header{background:linear-gradient(135deg,#0f1419,#0a1220);border-bottom:2px solid var(--cyan);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,212,255,0.15);}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--cyan);text-shadow:0 0 30px rgba(0,212,255,0.6);}
+.header{background:linear-gradient(135deg,var(--header-bg1),var(--header-bg2),var(--header-bg3));border-bottom:3px solid var(--cyan);padding:14px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 6px 30px rgba(0,212,255,0.2);}
+.header-logo-area{background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(255,140,0,0.05));border-radius:10px;padding:6px 12px;border:1px solid rgba(0,212,255,0.15);}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 30px rgba(0,212,255,0.6);}
 .logo span{color:var(--orange);}
-.logo small{font-size:11px;letter-spacing:2px;color:var(--muted);display:block;margin-top:-4px;}
+.logo small{font-size:10px;letter-spacing:2px;color:rgba(0,212,255,0.6);display:block;margin-top:-2px;font-family:'Share Tech Mono',monospace;}
 .hdr-btns{display:flex;gap:8px;}
 .hdr-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;}
 .hdr-btn.admin{border-color:var(--orange);color:var(--orange);}
@@ -41,7 +78,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* TABS */
 .tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
 .tabs::-webkit-scrollbar{display:none;}
-.tab{flex:1;min-width:80px;padding:11px 6px;text-align:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
+.tab{flex:1;min-width:80px;padding:12px 6px;text-align:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
 .tab.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,212,255,0.05);}
 
 /* PAGES */
@@ -50,7 +87,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* CARD */
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
-.card-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--cyan);margin-bottom:10px;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--cyan);margin-bottom:10px;}
 
 /* SCAN ZONE */
 .scan-zone{background:var(--surface);border:2px dashed var(--border);border-radius:12px;padding:24px 14px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:12px;position:relative;overflow:hidden;}
@@ -217,11 +254,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <body>
 
 <div class="header">
-  <div>
+  <div class="header-logo-area">
     <div class="logo">FACTURA<span>SCAN</span></div>
-    <small class="logo" style="font-size:10px;color:var(--muted);letter-spacing:2px;">POLAR BREEZE · SISTEMA DE DESPACHO</small>
+    <small class="logo" style="font-size:10px;letter-spacing:2px;">POLAR BREEZE · SISTEMA DE DESPACHO</small>
   </div>
   <div class="hdr-btns">
+    <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
     <button class="hdr-btn admin" onclick="openAdmin()">⚙ ADMIN</button>
   </div>
 </div>
@@ -497,8 +535,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
     <div id="admin-panel" style="display:none;">
       <div class="input-group">
-        <div class="input-label">🔑 API KEY ANTHROPIC</div>
-        <input class="input-field" type="password" id="admin-apikey" placeholder="sk-ant-..." />
+        <div class="input-label">🔑 GEMINI API KEY (Google AI Studio)</div>
+        <input class="input-field" type="password" id="admin-apikey" placeholder="AIzaSy..." />
         <button class="btn btn-primary" style="margin-top:8px;font-size:16px;" onclick="saveApiKey()">GUARDAR API KEY</button>
       </div>
       <hr class="sep">
@@ -1246,19 +1284,26 @@ function verifyCbAdmin() {
 // ════════════════════════════════════════════════════════
 async function callAPI(messages) {
   const key=apiKey||localStorage.getItem('fs_apikey')||'';
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
+  // Convert Anthropic message format to Gemini format
+  const parts = [];
+  for(const msg of messages){
+    if(Array.isArray(msg.content)){
+      for(const c of msg.content){
+        if(c.type==='text') parts.push({text:c.text});
+        else if(c.type==='image') parts.push({inlineData:{mimeType:c.source.media_type,data:c.source.data}});
+      }
+    } else {
+      parts.push({text:msg.content});
+    }
+  }
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':key,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({model:'claude-opus-4-5',max_tokens:2000,messages})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts}]})
   });
   if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Error API '+res.status);}
   const data=await res.json();
-  return data.content[0].text.trim();
+  return data.candidates[0].content.parts[0].text.trim();
 }
 
 function parseJSON(text) {
@@ -1280,7 +1325,7 @@ function toBase64(file){
 
 function checkApiKey(statusId) {
   const key=apiKey||localStorage.getItem('fs_apikey')||'';
-  if(!key){showStatus(statusId,'error','❌ Configura tu API Key en ADMIN primero');return false;}
+  if(!key){showStatus(statusId,'error','❌ Configura tu Gemini API Key en ADMIN primero');return false;}
   return true;
 }
 
@@ -1305,6 +1350,7 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 });
 
 // Init
+initTheme();
 initCFPage();
 renderDespachoSession();
 // Bind static new-opt button
@@ -1312,6 +1358,25 @@ renderDespachoSession();
   const btn = document.getElementById('cs-static-newopt');
   if(btn) btn.addEventListener('click', () => selectChofer('__new__'));
 })();
+
+
+// ════════════════════════════════════════════════════════
+// THEME TOGGLE
+// ════════════════════════════════════════════════════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('fs_theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isLight ? '☀️' : '🌙';
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('fs_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '☀️';
+  }
+}
 
 // ════════════════════════════════════════════════════════
 // CUSTOM SELECT / DROPDOWN
@@ -1390,85 +1455,6 @@ document.addEventListener('click', e => {
   }
 });
 
-<script>
-// --- MOTOR DE GOOGLE (URL DE ARIEL) ---
-const URL_GOOGLE_ARIEL = "https://script.google.com/macros/s/AKfycbwFTvfpOmkmqE7Klxp0MCApzpzZ6ZZJmbAAlHrVOiA1O_13s_EGKS29nnQe6WrTQV3p/exec";
-
-// --- FUNCIÓN PRINCIPAL DE ANÁLISIS ---
-async function analyzeCF() {
-    const preview = document.getElementById('cfPreview');
-    const btn = document.getElementById('cf-analyze-btn');
-    const loader = document.getElementById('cf-loader');
-    const resultTable = document.getElementById('cf-result');
-    const resultBody = document.getElementById('cf-result-body');
-    const countBadge = document.getElementById('cf-count');
-
-    // 1. Verificaciones iniciales
-    if (!preview.src || preview.src.includes('placeholder')) {
-        alert("Por favor, toma una foto de la lista primero.");
-        return;
-    }
-
-    if (!URL_GOOGLE_ARIEL) {
-        alert("Falta configurar la URL de Google.");
-        return;
-    }
-
-    // 2. Estado de carga
-    loader.classList.add('active');
-    btn.disabled = true;
-    resultTable.style.display = 'none'; // Ocultar tabla anterior
-    resultBody.innerHTML = ''; // Limpiar tabla
-
-    try {
-        // 3. Preparar imagen (Base64 puro)
-        const base64Image = preview.src.split(',')[1];
-
-        // 4. Enviar a Google
-        const response = await fetch(URL_GOOGLE_ARIEL, {
-            method: "POST",
-            mode: 'no-cors', // Modo necesario para Google Apps Script
-            body: JSON.stringify({ image: base64Image })
-        });
-
-        // 5. Google procesa pero no devuelve texto directamente en modo no-cors.
-        // Simularemos la detección para llenar tu tabla mientras configuras la respuesta JSON en Google.
-        // NOTA: Para que el texto llegue de verdad, tu script de Google debe devolver JSON.
-        
-        // Simulación:
-        const simulacionResultados = [
-            { prod: "Hielo en cubitos 5lb", cajas: 10, und: 0, total: 10 },
-            { prod: "Agua purificada 1gal", cajas: 0, und: 24, total: 24 },
-            { prod: "Hielo en bloque 20lb", cajas: 5, und: 0, total: 5 }
-        ];
-
-        // 6. Llenar la tabla de resultados
-        simulacionResultados.forEach(item => {
-            const row = `<tr>
-                <td>${item.prod}</td>
-                <td>${item.cajas}</td>
-                <td>${item.und}</td>
-                <td><strong>${item.total}</strong></td>
-            </tr>`;
-            resultBody.innerHTML += row;
-        });
-
-        // 7. Actualizar la interfaz
-        countBadge.textContent = `${simulacionResultados.length} items`;
-        resultTable.style.display = 'block'; // Mostrar la tabla de resultados
-        alert("Análisis completado (Datos simulados). Tu tabla está llena.");
-
-    } catch (error) {
-        console.error("Error en el OCR:", error);
-        alert("Hubo un error al conectar con el motor de Google.");
-    } finally {
-        // 8. Apagar estado de carga
-        loader.classList.remove('active');
-        btn.disabled = false;
-    }
-}
 </script>
-
 </body>
 </html>
-
