@@ -1390,6 +1390,85 @@ document.addEventListener('click', e => {
   }
 });
 
+<script>
+// --- MOTOR DE GOOGLE (URL DE ARIEL) ---
+const URL_GOOGLE_ARIEL = "https://script.google.com/macros/s/AKfycbwFTvfpOmkmqE7Klxp0MCApzpzZ6ZZJmbAAlHrVOiA1O_13s_EGKS29nnQe6WrTQV3p/exec";
+
+// --- FUNCIÓN PRINCIPAL DE ANÁLISIS ---
+async function analyzeCF() {
+    const preview = document.getElementById('cfPreview');
+    const btn = document.getElementById('cf-analyze-btn');
+    const loader = document.getElementById('cf-loader');
+    const resultTable = document.getElementById('cf-result');
+    const resultBody = document.getElementById('cf-result-body');
+    const countBadge = document.getElementById('cf-count');
+
+    // 1. Verificaciones iniciales
+    if (!preview.src || preview.src.includes('placeholder')) {
+        alert("Por favor, toma una foto de la lista primero.");
+        return;
+    }
+
+    if (!URL_GOOGLE_ARIEL) {
+        alert("Falta configurar la URL de Google.");
+        return;
+    }
+
+    // 2. Estado de carga
+    loader.classList.add('active');
+    btn.disabled = true;
+    resultTable.style.display = 'none'; // Ocultar tabla anterior
+    resultBody.innerHTML = ''; // Limpiar tabla
+
+    try {
+        // 3. Preparar imagen (Base64 puro)
+        const base64Image = preview.src.split(',')[1];
+
+        // 4. Enviar a Google
+        const response = await fetch(URL_GOOGLE_ARIEL, {
+            method: "POST",
+            mode: 'no-cors', // Modo necesario para Google Apps Script
+            body: JSON.stringify({ image: base64Image })
+        });
+
+        // 5. Google procesa pero no devuelve texto directamente en modo no-cors.
+        // Simularemos la detección para llenar tu tabla mientras configuras la respuesta JSON en Google.
+        // NOTA: Para que el texto llegue de verdad, tu script de Google debe devolver JSON.
+        
+        // Simulación:
+        const simulacionResultados = [
+            { prod: "Hielo en cubitos 5lb", cajas: 10, und: 0, total: 10 },
+            { prod: "Agua purificada 1gal", cajas: 0, und: 24, total: 24 },
+            { prod: "Hielo en bloque 20lb", cajas: 5, und: 0, total: 5 }
+        ];
+
+        // 6. Llenar la tabla de resultados
+        simulacionResultados.forEach(item => {
+            const row = `<tr>
+                <td>${item.prod}</td>
+                <td>${item.cajas}</td>
+                <td>${item.und}</td>
+                <td><strong>${item.total}</strong></td>
+            </tr>`;
+            resultBody.innerHTML += row;
+        });
+
+        // 7. Actualizar la interfaz
+        countBadge.textContent = `${simulacionResultados.length} items`;
+        resultTable.style.display = 'block'; // Mostrar la tabla de resultados
+        alert("Análisis completado (Datos simulados). Tu tabla está llena.");
+
+    } catch (error) {
+        console.error("Error en el OCR:", error);
+        alert("Hubo un error al conectar con el motor de Google.");
+    } finally {
+        // 8. Apagar estado de carga
+        loader.classList.remove('active');
+        btn.disabled = false;
+    }
+}
 </script>
+
 </body>
 </html>
+
