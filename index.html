@@ -199,6 +199,43 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;width:100%;max-width:480px;margin:auto;}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--orange);margin-bottom:13px;}
 
+
+/* ── VOICE ── */
+.voice-bar{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:12px;margin-bottom:10px;display:none;}
+.voice-bar.active{display:block;}
+.voice-transcript{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;min-height:44px;font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.5;}
+.voice-transcript .cursor{display:inline-block;width:2px;height:14px;background:var(--cyan);animation:blink .7s infinite;vertical-align:middle;margin-left:2px;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.voice-btns{display:flex;gap:8px;}
+.vbtn{flex:1;padding:9px;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;cursor:pointer;border:none;transition:all .2s;}
+.vbtn-mic{background:linear-gradient(135deg,var(--red),#aa0022);color:#fff;}
+.vbtn-mic.listening{background:linear-gradient(135deg,var(--green),#00aa55);animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,.4)}50%{box-shadow:0 0 0 8px rgba(0,255,136,0)}}
+.vbtn-confirm{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;}
+.vbtn-clear{background:transparent;border:1px solid var(--border);color:var(--muted);}
+
+/* ── TWO FIELDS (suma/resta) ── */
+.two-fields{display:flex;gap:6px;align-items:center;}
+.field-box{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.field-lbl{font-size:9px;font-weight:700;letter-spacing:.5px;}
+.field-lbl.suma{color:var(--green);}
+.field-lbl.resta{color:var(--red);}
+.field-in{width:46px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 3px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;text-align:center;}
+.field-in.suma-in:focus{outline:none;border-color:var(--green);}
+.field-in.resta-in:focus{outline:none;border-color:var(--red);}
+
+/* ── CHOFER PREVIEW ── */
+.chofer-preview{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:10px;margin-bottom:10px;display:none;}
+.chofer-preview.visible{display:block;}
+.cp-name{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--cyan);margin-bottom:6px;}
+.cp-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
+.cp-item:last-child{border-bottom:none;}
+.cp-listo{color:var(--green);font-weight:700;font-size:11px;}
+
+/* ── PROD ROW HIGHLIGHT ── */
+.prod-fixed-row.confirmed{background:rgba(0,255,136,.07);}
+.prod-fixed-row.confirmed .prod-fixed-name::after{content:' ✅';color:var(--green);font-size:11px;}
+
 /* ── SEP ── */
 .sep{border:none;border-top:1px solid var(--border);margin:12px 0;}
 /* ── EMPTY ── */
@@ -330,6 +367,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <input class="if" id="ch-nombre-new" placeholder="Escribe el nombre...">
       </div>
       <input type="hidden" id="ch-nombre" value="">
+      <!-- CHOFER PREVIEW -->
+      <div class="chofer-preview" id="chofer-preview">
+        <div class="cp-name" id="cp-name"></div>
+        <div id="cp-products"></div>
+      </div>
       <div class="ig" style="margin-top:8px;">
         <div class="il">FICHA / PLACA</div>
         <input class="if" id="ch-ficha" placeholder="Número de ficha...">
@@ -361,9 +403,26 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <!-- MANUAL -->
     <div id="ch-manual-area" style="display:none;">
+      <!-- VOICE BAR -->
+      <div class="voice-bar" id="voice-bar">
+        <div style="font-size:11px;color:var(--cyan);font-weight:700;letter-spacing:1px;margin-bottom:8px;">🎤 DICTADO POR VOZ</div>
+        <div class="voice-transcript" id="voice-transcript"><span id="voice-text"></span><span class="cursor"></span></div>
+        <div class="voice-btns">
+          <button class="vbtn vbtn-mic" id="voice-mic-btn" onclick="toggleVoice()">🎤 HABLAR</button>
+          <button class="vbtn vbtn-confirm" onclick="confirmVoice()">✅ CONFIRMAR</button>
+          <button class="vbtn vbtn-clear" onclick="clearVoice()">✕</button>
+        </div>
+      </div>
       <div class="card">
-        <div class="card-title">FACTURA MANUAL</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div class="card-title" style="margin-bottom:0;">FACTURA MANUAL</div>
+          <button onclick="toggleVoiceBar()" style="background:rgba(255,34,68,.1);border:1px solid rgba(255,34,68,.3);color:var(--red);padding:6px 12px;border-radius:7px;font-family:'Bebas Neue',sans-serif;font-size:13px;cursor:pointer;letter-spacing:1px;">🎤 VOZ</button>
+        </div>
         <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Ingresa cantidades. Deja en 0 los que no aplican.</p>
+        <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:6px;padding-right:4px;">
+          <span style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.5px;width:46px;text-align:center;">SUMA</span>
+          <span style="font-size:9px;font-weight:700;color:var(--red);letter-spacing:.5px;width:46px;text-align:center;">RESTA</span>
+        </div>
         <div class="prod-fixed-list" id="ch-manual-list"></div>
         <div class="add-new-prod-box">
           <div class="add-new-title">➕ PRODUCTO NUEVO</div>
@@ -771,16 +830,25 @@ function renderCHManualList() {
   if(!products.length){ container.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:10px;">Agrega tu primer producto abajo.</p>'; return; }
   container.innerHTML=products.map((nombre,i)=>`
     <div class="prod-fixed-row" id="ch-prow-${i}">
-      <div class="prod-fixed-name">${nombre}</div>
-      <input class="qty-in" type="number" min="0" value="0" id="ch-qty-${i}" onchange="highlightCHRow(${i})" style="width:55px;">
-      <span style="font-size:9px;color:var(--muted);">und</span>
+      <div class="prod-fixed-name" style="flex:1;">${nombre}</div>
+      <div class="two-fields">
+        <div class="field-box">
+          <div class="field-lbl suma">SUMA</div>
+          <input class="field-in suma-in" type="number" min="0" value="0" id="ch-suma-${i}" onchange="highlightCHRow(${i})">
+        </div>
+        <div class="field-box">
+          <div class="field-lbl resta">RESTA</div>
+          <input class="field-in resta-in" type="number" min="0" value="0" id="ch-resta-${i}" onchange="highlightCHRow(${i})">
+        </div>
+      </div>
     </div>`).join('');
   container.dataset.prods=JSON.stringify(products);
 }
 
 function highlightCHRow(i) {
-  const q=parseInt(document.getElementById('ch-qty-'+i)?.value)||0;
-  document.getElementById('ch-prow-'+i)?.classList.toggle('has-qty',q>0);
+  const s=parseInt(document.getElementById('ch-suma-'+i)?.value)||0;
+  const r=parseInt(document.getElementById('ch-resta-'+i)?.value)||0;
+  document.getElementById('ch-prow-'+i)?.classList.toggle('has-qty',s>0||r>0);
 }
 
 function addCHNewProd() {
@@ -798,8 +866,10 @@ function saveCHManual() {
   const prods=JSON.parse(document.getElementById('ch-manual-list').dataset.prods||'[]');
   const productos=[];
   prods.forEach((nombre,i)=>{
-    const qty=parseInt(document.getElementById('ch-qty-'+i)?.value)||0;
-    if(qty>0){ productos.push({nombre,cantidad:qty,cajas:Math.floor(qty/upb(nombre)),sueltas:qty%upb(nombre)}); }
+    const suma=parseInt(document.getElementById('ch-suma-'+i)?.value)||0;
+    const resta=parseInt(document.getElementById('ch-resta-'+i)?.value)||0;
+    const qty=suma-resta;
+    if(suma>0||resta>0){ productos.push({nombre,cantidad:qty,suma,resta,cajas:Math.floor(Math.max(qty,0)/upb(nombre)),sueltas:Math.max(qty,0)%upb(nombre)}); }
   });
   if(!productos.length){ alert('Agrega al menos un producto'); return; }
   addToDespacho(chofer,productos);
@@ -1226,6 +1296,7 @@ function selectChofer(nombre) {
   document.getElementById('new-chofer-box').classList.toggle('vis',isNew);
   document.getElementById('chofer-cs-dd').classList.remove('open');
   document.getElementById('chofer-cs').querySelector('.cs-btn').classList.remove('open');
+  showChoferPreview(isNew?'':nombre);
 }
 
 function populateDateDD() {
@@ -1273,6 +1344,158 @@ function saveHistory(){localStorage.setItem('fs_history',JSON.stringify(history)
 function saveConfig(){localStorage.setItem('fs_config',JSON.stringify(productConfig));}
 
 document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('active');}));
+
+
+// ════════════════════════════════════════════════════════
+// VOICE RECOGNITION
+// ════════════════════════════════════════════════════════
+let recognition = null;
+let isListening = false;
+let voiceText = '';
+
+function toggleVoiceBar() {
+  const bar = document.getElementById('voice-bar');
+  bar.classList.toggle('active');
+}
+
+function toggleVoice() {
+  if(isListening) stopVoice();
+  else startVoice();
+}
+
+function startVoice() {
+  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){
+    alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome.');
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'es-DO';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    let final = '';
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      if(e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    if(final) voiceText += final;
+    document.getElementById('voice-text').textContent = voiceText + interim;
+  };
+
+  recognition.onerror = () => stopVoice();
+  recognition.onend = () => { if(isListening) recognition.start(); };
+
+  recognition.start();
+  isListening = true;
+  const btn = document.getElementById('voice-mic-btn');
+  btn.textContent = '⏹ PARAR';
+  btn.classList.add('listening');
+}
+
+function stopVoice() {
+  if(recognition) recognition.stop();
+  isListening = false;
+  const btn = document.getElementById('voice-mic-btn');
+  btn.textContent = '🎤 HABLAR';
+  btn.classList.remove('listening');
+}
+
+function clearVoice() {
+  stopVoice();
+  voiceText = '';
+  document.getElementById('voice-text').textContent = '';
+}
+
+function confirmVoice() {
+  stopVoice();
+  const text = voiceText.trim();
+  if(!text) return;
+
+  // Parse: find product name and number
+  const products = getAllProducts();
+  const numWords = {'cero':0,'uno':1,'una':1,'dos':2,'tres':3,'cuatro':4,'cinco':5,'seis':6,'siete':7,'ocho':8,'nueve':9,'diez':10,'once':11,'doce':12,'trece':13,'catorce':14,'quince':15,'dieciséis':16,'diecisiete':17,'dieciocho':18,'diecinueve':19,'veinte':20,'veintiuno':21,'veintidos':22,'veintitres':23,'veinticuatro':24,'veinticinco':25,'treinta':30,'cuarenta':40,'cincuenta':50,'sesenta':60,'setenta':70,'ochenta':80,'noventa':90,'cien':100};
+
+  let matched = false;
+  const textLower = text.toLowerCase();
+
+  // Try to extract number from text
+  let qty = 0;
+  // Check numeric digits first
+  const numMatch = textLower.match(/\d+/);
+  if(numMatch) qty = parseInt(numMatch[0]);
+  else {
+    // Check word numbers
+    for(const [word, val] of Object.entries(numWords)){
+      if(textLower.includes(word)){ qty = val; break; }
+    }
+  }
+
+  if(qty > 0) {
+    // Find matching product
+    const prods = JSON.parse(document.getElementById('ch-manual-list').dataset.prods || '[]');
+    for(let i=0; i<prods.length; i++){
+      const prodLower = prods[i].toLowerCase();
+      // Check if any word of the product name is in the voice text
+      const prodWords = prodLower.split(/\s+/);
+      const matchScore = prodWords.filter(w => w.length > 3 && textLower.includes(w)).length;
+      if(matchScore > 0){
+        const sumaInput = document.getElementById('ch-suma-'+i);
+        if(sumaInput){
+          sumaInput.value = qty;
+          highlightCHRow(i);
+          document.getElementById('ch-prow-'+i)?.classList.add('confirmed');
+          matched = true;
+          showStat('ch-status','success','✅ '+prods[i]+': '+qty+' unidades');
+        }
+        break;
+      }
+    }
+  }
+
+  if(!matched) showStat('ch-status','warn','⚠️ No se pudo identificar el producto: "'+text+'"');
+  clearVoice();
+}
+
+// ════════════════════════════════════════════════════════
+// CHOFER PREVIEW
+// ════════════════════════════════════════════════════════
+function showChoferPreview(nombre) {
+  const preview = document.getElementById('chofer-preview');
+  const cpName = document.getElementById('cp-name');
+  const cpProds = document.getElementById('cp-products');
+
+  if(!nombre){ preview.classList.remove('visible'); return; }
+
+  const key = 'fs_drv_'+nombre.replace(/\W/g,'_');
+  const dh = JSON.parse(localStorage.getItem(key)||'{"historial":[],"totales":{}}');
+
+  cpName.textContent = nombre;
+
+  if(!Object.keys(dh.totales||{}).length){
+    cpProds.innerHTML = '<div style="font-size:11px;color:var(--muted);">Sin historial previo.</div>';
+  } else {
+    // Show last entry products
+    const last = dh.historial[dh.historial.length-1];
+    let html = '<div style="font-size:10px;color:var(--muted);margin-bottom:5px;letter-spacing:.5px;">ÚLTIMA FACTURA: '+( last?.fecha||'')+'</div>';
+    if(last) {
+      last.productos.forEach(p=>{
+        const isListo = marks[p.nombre]?.ent;
+        html += `<div class="cp-item">
+          <span style="font-size:11px;font-weight:700;">${p.nombre}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:'Share Tech Mono',monospace;font-size:11px;">${p.cantidad} und</span>
+            ${isListo?'<span class="cp-listo">✅ LISTO</span>':''}
+          </div>
+        </div>`;
+      });
+    }
+    cpProds.innerHTML = html;
+  }
+  preview.classList.add('visible');
+}
 
 // INIT
 initCFPage();
