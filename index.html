@@ -5,1388 +5,1279 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>FacturaScan Pro</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
 
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --card: #1a1a24;
-    --border: #2a2a3a;
-    --cyan: #00e5ff;
-    --green: #00ff88;
-    --orange: #ff6b35;
-    --red: #ff3355;
-    --text: #e8e8f0;
-    --muted: #6b6b88;
-  }
-  body.light {
-    --bg: #f0f4f8;
-    --surface: #ffffff;
-    --card: #ffffff;
-    --border: #d0dce8;
-    --cyan: #0077aa;
-    --green: #009944;
-    --orange: #cc5500;
-    --red: #cc1133;
-    --text: #1a2530;
-    --muted: #7a90a0;
-  }
-  body.light .result-table th { background: rgba(0,119,170,0.1); }
-  body.light .api-key-field { border-color: var(--orange); }
+/* ── VARIABLES ── */
+:root {
+  --bg:#07090d; --surface:#0d1117; --card:#111620; --border:#1c2535;
+  --cyan:#00d4ff; --green:#00ff88; --orange:#ff8c00; --red:#ff2244; --yellow:#ffd600;
+  --text:#dde8f0; --muted:#4a6070;
+  --hdr1:#0a0f1a; --hdr2:#060c16;
+}
+body.light {
+  --bg:#eef2f7; --surface:#fff; --card:#fff; --border:#ccd8e8;
+  --cyan:#0077aa; --green:#008844; --orange:#cc5500; --red:#bb1133; --yellow:#aa8800;
+  --text:#18222e; --muted:#7a90a0;
+  --hdr1:#002840; --hdr2:#001e30;
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 16px;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* ── HEADER ── */
+.hdr{background:linear-gradient(135deg,var(--hdr1),var(--hdr2));border-bottom:2px solid var(--cyan);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(0,212,255,.15);}
+.logo-wrap{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(255,140,0,.05));border:1px solid rgba(0,212,255,.18);border-radius:10px;padding:6px 12px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 30px rgba(0,212,255,.5);line-height:1;}
+.logo span{color:var(--orange);}
+.logo-sub{font-size:9px;letter-spacing:2px;color:rgba(0,212,255,.5);font-family:'Share Tech Mono',monospace;margin-top:1px;}
+.hdr-btns{display:flex;gap:7px;}
+.hbtn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 11px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.hbtn.admin{border-color:var(--orange);color:var(--orange);}
+.hbtn:hover{border-color:var(--cyan);color:var(--cyan);}
 
-  /* HEADER */
-  .header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--cyan);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 26px;
-    letter-spacing: 2px;
-    color: var(--cyan);
-    text-shadow: 0 0 20px rgba(0,229,255,0.5);
-  }
-  .logo span { color: var(--orange); }
-  .header-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 1px;
-  }
-  .header-btn.admin { border-color: var(--orange); color: var(--orange); }
+/* ── TABS ── */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:70px;padding:11px 5px;text-align:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;text-transform:uppercase;}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,212,255,.04);}
 
-  /* NAV TABS */
-  .tabs {
-    display: flex;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-  }
-  .tab {
-    flex: 1;
-    padding: 12px 8px;
-    text-align: center;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1px;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    text-transform: uppercase;
-  }
-  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+/* ── PAGES ── */
+.page{display:none;padding:13px;position:relative;z-index:1;}
+.page.active{display:block;}
 
-  /* PAGES */
-  .page { display: none; padding: 16px; }
-  .page.active { display: block; }
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:13px;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;color:var(--cyan);margin-bottom:10px;}
 
-  /* CARDS */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .card-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 2px;
-    color: var(--cyan);
-    margin-bottom: 12px;
-  }
+/* ── SCAN ZONE ── */
+.scan-zone{background:var(--surface);border:2px dashed var(--border);border-radius:12px;padding:24px 14px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:11px;position:relative;overflow:hidden;}
+.scan-zone.has-image{border-color:var(--green);border-style:solid;}
+.scan-zone:not(.locked):hover{border-color:var(--cyan);}
+.scan-zone.locked{border-color:var(--orange);cursor:not-allowed;}
+.sz-icon{font-size:38px;margin-bottom:8px;}
+.sz-label{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;line-height:1.4;}
+.scan-zone img{width:100%;border-radius:8px;display:none;}
+.scan-zone.has-image img{display:block;}
+.scan-zone.has-image .sz-ph{display:none;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:scanA 1.5s ease-in-out infinite;display:none;}
+.scanning .scan-line{display:block;}
+@keyframes scanA{0%{top:0}100%{top:100%}}
 
-  /* SCAN ZONE */
-  .scan-zone {
-    background: var(--surface);
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 30px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin-bottom: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-  .scan-zone:hover, .scan-zone.has-image { border-color: var(--cyan); }
-  .scan-zone .icon { font-size: 48px; margin-bottom: 12px; }
-  .scan-zone .label { font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 1px; }
-  .scan-zone img { width: 100%; border-radius: 8px; display: none; }
-  .scan-zone.has-image img { display: block; }
-  .scan-zone.has-image .placeholder { display: none; }
+/* ── BUTTONS ── */
+.btn{width:100%;padding:12px;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;border:none;transition:all .2s;margin-bottom:9px;}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;}
+.btn-primary:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;}
+.btn-green{background:linear-gradient(135deg,var(--green),#00aa55);color:#000;}
+.btn-orange{background:linear-gradient(135deg,var(--orange),#bb5500);color:#000;}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);}
+.btn-sec{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-sm{font-size:12px;padding:7px 12px;border-radius:7px;width:auto;margin:0;letter-spacing:1px;}
+.row-btns{display:flex;gap:8px;margin-bottom:10px;}
+.row-btns .btn{flex:1;margin-bottom:0;}
 
-  #fileInput { display: none; }
+/* ── MODE TOGGLE ── */
+.mode-toggle{display:flex;gap:7px;margin-bottom:10px;}
+.mode-btn{flex:1;padding:10px;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .2s;}
+.mode-btn.active{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;border-color:transparent;}
 
-  /* BUTTONS */
-  .btn {
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-    margin-bottom: 10px;
-  }
-  .btn-primary { background: var(--cyan); color: #000; }
-  .btn-primary:hover { background: #00c8e0; transform: translateY(-1px); }
-  .btn-primary:disabled { background: var(--border); color: var(--muted); transform: none; cursor: not-allowed; }
-  .btn-danger { background: transparent; border: 1px solid var(--red); color: var(--red); }
-  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-  .btn-green { background: var(--green); color: #000; }
+/* ── INPUT ── */
+.ig{margin-bottom:10px;}
+.il{font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;}
+.if{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;width:100%;transition:border .2s;}
+.if:focus{outline:none;border-color:var(--cyan);}
+.if[type=password]{font-family:'Share Tech Mono',monospace;letter-spacing:3px;}
+.qty-in{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 5px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;width:52px;text-align:center;}
+.qty-in:focus{outline:none;border-color:var(--cyan);}
 
-  /* RESULTS */
-  .result-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    font-family: 'Share Tech Mono', monospace;
-  }
-  .result-table th {
-    background: rgba(0,229,255,0.1);
-    color: var(--cyan);
-    padding: 8px 6px;
-    text-align: left;
-    font-size: 11px;
-    letter-spacing: 1px;
-    border-bottom: 1px solid var(--border);
-  }
-  .result-table td {
-    padding: 8px 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    color: var(--text);
-    vertical-align: middle;
-  }
-  .result-table tr:last-child td { border-bottom: none; }
-  .badge-cajas {
-    background: rgba(0,255,136,0.15);
-    color: var(--green);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-  }
-  .badge-sueltas {
-    background: rgba(255,107,53,0.15);
-    color: var(--orange);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-  }
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:rgba(0,212,255,.07);color:var(--cyan);padding:7px 5px;text-align:left;font-size:10px;letter-spacing:1px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;}
+.tbl td{padding:7px 5px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.pname{font-weight:700;font-size:11px;max-width:120px;word-break:break-word;line-height:1.3;}
+.tbl-wrap{overflow-x:auto;max-height:340px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
 
-  /* EDITABLE CELL */
-  .editable {
-    background: rgba(0,229,255,0.05);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 3px 6px;
-    color: var(--text);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    width: 50px;
-    text-align: center;
-  }
-  .editable:focus { outline: none; border-color: var(--cyan); }
+/* ── BADGE ── */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;}
+.bg{background:rgba(0,255,136,.12);color:var(--green);}
+.bo{background:rgba(255,140,0,.12);color:var(--orange);}
+.br{background:rgba(255,34,68,.12);color:var(--red);}
+.bc{background:rgba(0,212,255,.12);color:var(--cyan);}
+.by{background:rgba(255,214,0,.12);color:var(--yellow);}
 
-  /* STATUS */
-  .status-bar {
-    background: rgba(0,229,255,0.08);
-    border: 1px solid rgba(0,229,255,0.2);
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .status-bar.error { background: rgba(255,51,85,0.08); border-color: rgba(255,51,85,0.3); }
-  .status-bar.success { background: rgba(0,255,136,0.08); border-color: rgba(0,255,136,0.3); }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); flex-shrink: 0; }
-  .status-dot.error { background: var(--red); }
-  .status-dot.success { background: var(--green); }
-  .status-text { font-size: 13px; font-weight: 600; letter-spacing: 0.5px; }
+/* ── STATUS ── */
+.sbar{border-radius:8px;padding:9px 12px;margin-bottom:11px;display:flex;align-items:center;gap:8px;display:none;}
+.sbar.show{display:flex;}
+.sbar.success{background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.3);}
+.sbar.error{background:rgba(255,34,68,.07);border:1px solid rgba(255,34,68,.3);}
+.sbar.warn{background:rgba(255,140,0,.07);border:1px solid rgba(255,140,0,.3);}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.success .sdot{background:var(--green);}
+.error .sdot{background:var(--red);}
+.warn .sdot{background:var(--orange);}
+.stxt{font-size:12px;font-weight:700;letter-spacing:.5px;line-height:1.4;}
 
-  /* LOADING */
-  .loader {
-    display: none;
-    text-align: center;
-    padding: 24px;
-  }
-  .loader.active { display: block; }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--cyan);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 12px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loader-text { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--cyan); }
+/* ── LOADER ── */
+.loader{display:none;text-align:center;padding:20px;}
+.loader.active{display:block;}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ltxt{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--cyan);}
 
-  /* DRIVER SELECTOR */
-  .driver-select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    width: 100%;
-    margin-bottom: 12px;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  .driver-select:focus { outline: none; border-color: var(--cyan); }
+/* ── CUSTOM DROPDOWN ── */
+.cs{position:relative;margin-bottom:10px;}
+.cs-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 34px 10px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;width:100%;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:border .2s;}
+.cs-btn.open{border-color:var(--cyan);border-radius:8px 8px 0 0;}
+.cs-dd{display:none;position:absolute;left:0;right:0;top:100%;background:var(--card);border:1px solid var(--cyan);border-top:none;border-radius:0 0 8px 8px;z-index:50;max-height:200px;overflow-y:auto;scrollbar-width:thin;}
+.cs-dd.open{display:block;}
+.cs-opt{padding:10px 13px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;display:flex;align-items:center;gap:8px;}
+.cs-opt:last-child{border-bottom:none;}
+.cs-opt:hover{background:rgba(0,212,255,.07);color:var(--cyan);}
+.cs-opt.new-o{color:var(--green);}
+.new-cf-box{background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.25);border-radius:8px;padding:10px;margin-bottom:10px;display:none;}
+.new-cf-box.vis{display:block;}
 
-  /* DRIVER CARD */
-  .driver-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .driver-card:hover { border-color: var(--cyan); }
-  .driver-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: 2px;
-    color: var(--cyan);
-  }
-  .driver-meta {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    margin-top: 4px;
-  }
-  .driver-total {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    color: var(--green);
-    margin-top: 6px;
-  }
+/* ── LOCKED NOTICE ── */
+.lock-notice{display:flex;align-items:center;gap:8px;background:rgba(255,140,0,.07);border:1px solid rgba(255,140,0,.3);border-radius:8px;padding:10px 12px;margin-bottom:11px;}
+.lock-notice span{font-size:12px;font-weight:700;color:var(--orange);}
 
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 200;
-    padding: 20px;
-    overflow-y: auto;
-  }
-  .modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; }
-  .modal {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    width: 100%;
-    max-width: 480px;
-    margin: auto;
-  }
-  .modal-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 3px;
-    color: var(--orange);
-    margin-bottom: 16px;
-  }
+/* ── MINI PANEL ── */
+.mini-panel{background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:10px;margin-bottom:11px;}
+.mini-title{font-size:10px;letter-spacing:2px;color:var(--cyan);font-weight:700;text-transform:uppercase;margin-bottom:8px;}
+.mini-scroll{max-height:150px;overflow-y:auto;scrollbar-width:thin;}
 
-  /* ADMIN INPUT */
-  .input-group { margin-bottom: 12px; }
-  .input-label { font-size: 12px; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-  .input-field {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 15px;
-    width: 100%;
-  }
-  .input-field:focus { outline: none; border-color: var(--cyan); }
-  .input-field[type=password] { font-family: 'Share Tech Mono', monospace; letter-spacing: 3px; }
+/* ── MANUAL PRODUCT LIST ── */
+.prod-fixed-list{max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;margin-bottom:10px;}
+.prod-fixed-row{display:flex;align-items:center;gap:8px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.05);transition:background .15s;}
+.prod-fixed-row.has-qty{background:rgba(0,212,255,.04);}
+.prod-fixed-name{flex:1;font-size:12px;font-weight:700;line-height:1.3;}
+.add-new-prod-box{background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:10px;margin-bottom:10px;}
+.add-new-title{font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.add-new-row{display:flex;gap:7px;align-items:center;}
 
-  /* PRODUCT LIST ADMIN */
-  .product-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .product-row:last-child { border-bottom: none; }
-  .product-row-name { flex: 1; font-size: 13px; font-weight: 600; }
-  .product-row-input {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 5px 8px;
-    color: var(--text);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    width: 60px;
-    text-align: center;
-  }
-  .product-row-input:focus { outline: none; border-color: var(--cyan); }
+/* ── DRIVER CARD ── */
+.driver-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:9px;cursor:pointer;transition:all .2s;}
+.driver-card:hover{border-color:var(--cyan);}
+.driver-name{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;color:var(--cyan);}
+.driver-meta{font-size:11px;color:var(--muted);margin-top:3px;}
 
-  /* SCANNING ANIMATION */
-  .scan-line {
-    position: absolute;
-    left: 0; right: 0;
-    height: 2px;
-    background: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan);
-    animation: scanAnim 1.5s ease-in-out infinite;
-    display: none;
-  }
-  .scanning .scan-line { display: block; }
-  @keyframes scanAnim {
-    0% { top: 0; }
-    100% { top: 100%; }
-  }
+/* ── DESPACHO MARK ── */
+.mark-row{display:flex;align-items:center;gap:7px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.05);}
+.mark-name{flex:1;font-size:12px;font-weight:700;line-height:1.3;}
+.mark-box{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.mark-label{font-size:9px;letter-spacing:.5px;font-weight:700;}
+.mark-label.ent{color:var(--green);}
+.mark-label.ret{color:var(--orange);}
+.mark-check{width:22px;height:22px;border-radius:5px;border:2px solid;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;}
+.mark-check.ent-check{border-color:var(--green);}
+.mark-check.ent-check.checked{background:var(--green);color:#000;}
+.mark-check.ret-check{border-color:var(--orange);}
+.mark-check.ret-check.checked{background:var(--orange);color:#000;}
+.mark-qty{width:45px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:3px 4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;text-align:center;}
 
-  /* TOTALS */
-  .total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-top: 1px solid var(--border);
-    margin-top: 8px;
-  }
-  .total-label { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--muted); }
-  .total-value { font-family: 'Share Tech Mono', monospace; font-size: 16px; color: var(--green); }
+/* ── COMPARE ── */
+.cmp-card{border-radius:10px;padding:12px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.cmp-card.ok{background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);}
+.cmp-card.over{background:rgba(255,214,0,.05);border:1px solid rgba(255,214,0,.2);}
+.cmp-card.under{background:rgba(255,34,68,.06);border:1px solid rgba(255,34,68,.25);}
+.cmp-icon{font-size:20px;flex-shrink:0;}
+.cmp-name{font-size:12px;font-weight:700;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cmp-nums{display:flex;gap:12px;margin-top:4px;font-family:'Share Tech Mono',monospace;font-size:11px;}
+.cmp-diff-num{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1;}
+.cmp-diff-lbl{font-size:9px;letter-spacing:1px;font-weight:700;margin-top:1px;}
 
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-  }
-  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; line-height: 1.6; }
+/* ── HIST CARD ── */
+.hist-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:9px;cursor:pointer;transition:all .2s;}
+.hist-card:hover{border-color:var(--cyan);}
+.hist-date{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;color:var(--orange);}
+.hist-meta{font-size:11px;color:var(--muted);margin-top:3px;}
 
-  .chip {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-left: 6px;
-  }
-  .chip-cyan { background: rgba(0,229,255,0.15); color: var(--cyan); }
-  .chip-orange { background: rgba(255,107,53,0.15); color: var(--orange); }
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;padding:14px;overflow-y:auto;}
+.modal-ov.active{display:flex;align-items:flex-start;justify-content:center;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;width:100%;max-width:480px;margin:auto;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--orange);margin-bottom:13px;}
 
-  .session-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .session-count {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .api-key-field {
-    background: var(--surface);
-    border: 1px solid var(--orange);
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    width: 100%;
-    word-break: break-all;
-  }
-  .api-key-field:focus { outline: none; border-color: var(--cyan); }
+/* ── SEP ── */
+.sep{border:none;border-top:1px solid var(--border);margin:12px 0;}
+/* ── EMPTY ── */
+.empty{text-align:center;padding:34px 14px;color:var(--muted);}
+.empty .ei{font-size:42px;margin-bottom:10px;}
+.empty p{font-size:13px;line-height:1.6;}
+/* ── SUMMARY BOXES ── */
+.sum-boxes{display:flex;gap:8px;margin-bottom:13px;}
+.sum-box{flex:1;border-radius:10px;padding:10px;text-align:center;}
+.sum-box-num{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;}
+.sum-box-lbl{font-size:9px;letter-spacing:1px;font-weight:700;margin-top:2px;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">FACTURA<span>SCAN</span></div>
-  <div style="display:flex;gap:8px;">
-    <button class="header-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
-    <button class="header-btn admin" onclick="openAdminModal()">⚙ ADMIN</button>
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo-wrap">
+    <div class="logo">FACTURA<span>SCAN</span></div>
+    <div class="logo-sub">POLAR BREEZE · SISTEMA DE DESPACHO</div>
+  </div>
+  <div class="hdr-btns">
+    <button class="hbtn" id="theme-btn" onclick="toggleTheme()">🌙</button>
+    <button class="hbtn admin" onclick="openAdmin()">⚙ ADMIN</button>
   </div>
 </div>
 
+<!-- TABS -->
 <div class="tabs">
-  <div class="tab active" onclick="showPage('scan')">📷 ESCANEAR</div>
-  <div class="tab" onclick="showPage('session')">📋 SESIÓN</div>
-  <div class="tab" onclick="showPage('choferes')">🚚 CHOFERES</div>
+  <div class="tab active" onclick="goTab('cf')">🏭 C.FRÍO</div>
+  <div class="tab" onclick="goTab('choferes')">🚚 CHOFERES</div>
+  <div class="tab" onclick="goTab('comparar')">📊 COMPARAR</div>
+  <div class="tab" onclick="goTab('historial')">📅 HISTORIAL</div>
 </div>
 
-<!-- PAGE: SCAN -->
-<div class="page active" id="page-scan">
+<!-- ═══════════════ PAGE: CUARTO FRÍO ═══════════════ -->
+<div class="page active" id="page-cf">
 
-  <div class="card" style="margin-top:16px">
-    <div class="card-title">DATOS DE FACTURA</div>
-    <div class="input-group">
-      <div class="input-label">CHOFER (se crea automático si es nuevo)</div>
-      <input class="input-field" id="choferInput" placeholder="Nombre del chofer..." />
+  <!-- LOCKED -->
+  <div id="cf-locked" style="display:none;margin-top:13px;">
+    <div class="lock-notice"><span>🔒</span><span id="cf-locked-msg">LISTA YA ESCANEADA HOY</span></div>
+    <div class="mini-panel">
+      <div class="mini-title">📦 LISTA DEL DÍA</div>
+      <div class="mini-scroll">
+        <table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th></tr></thead>
+        <tbody id="cf-mini-body"></tbody></table>
+      </div>
     </div>
-    <div class="input-group">
-      <div class="input-label">FICHA / PLACA</div>
-      <input class="input-field" id="fichaInput" placeholder="Número de ficha..." />
-    </div>
+    <button class="btn btn-sec" style="font-size:14px;" onclick="requireAdmin(resetCF)">🔓 RESETEAR (ADMIN)</button>
   </div>
 
-  <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleImage(event)">
-  
-  <div class="scan-zone" id="scanZone" onclick="document.getElementById('fileInput').click()">
-    <div class="scan-line"></div>
-    <div class="placeholder">
-      <div class="icon">📄</div>
-      <div class="label">TOCA PARA TOMAR FOTO<br>O ELEGIR DE GALERÍA</div>
+  <!-- SCAN/MANUAL -->
+  <div id="cf-scan" style="margin-top:13px;">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="cf-m-scan" onclick="setCFMode('scan')">📷 ESCANEAR</button>
+      <button class="mode-btn" id="cf-m-manual" onclick="setCFMode('manual')">✏️ MANUAL</button>
     </div>
-    <img id="previewImg" src="" alt="Factura">
-  </div>
 
-  <div style="display:flex; gap:10px;">
-    <button class="btn btn-danger" style="flex:1; font-size:16px;" onclick="clearImage()">🗑 BORRAR</button>
-    <button class="btn btn-secondary" style="flex:1; font-size:16px;" onclick="document.getElementById('fileInput').click()">📷 NUEVA FOTO</button>
-  </div>
-
-  <div id="statusBar" style="display:none"></div>
-
-  <div class="loader" id="loader">
-    <div class="spinner"></div>
-    <div class="loader-text">ANALIZANDO FACTURA...</div>
-    <div style="font-size:12px; color:var(--muted); margin-top:8px; letter-spacing:1px;">LA IA ESTÁ LEYENDO LOS PRODUCTOS</div>
-  </div>
-
-  <!-- MODE TOGGLE -->
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <button class="btn btn-primary" style="flex:1;font-size:15px;padding:11px;" id="mode-scan-btn" onclick="setMode('scan')">📷 ESCANEAR</button>
-      <button class="btn" style="flex:1;font-size:15px;padding:11px;background:transparent;border:1px solid var(--border);color:var(--muted);" id="mode-manual-btn" onclick="setMode('manual')">✏️ MANUAL</button>
+    <!-- SCAN -->
+    <div id="cf-scan-area">
+      <input type="file" id="cfFile" accept="image/*" capture="environment" onchange="handleCFImg(event)" style="display:none">
+      <div class="scan-zone" id="cfZone" onclick="document.getElementById('cfFile').click()">
+        <div class="scan-line"></div>
+        <div class="sz-ph"><div class="sz-icon">🏭</div><div class="sz-label">FOTO DE LISTA<br>CUARTO FRÍO</div></div>
+        <img id="cfPreview" src="" alt="">
+      </div>
+      <div class="row-btns">
+        <button class="btn btn-danger btn-sm" onclick="clearCFImg()">🗑 Borrar</button>
+        <button class="btn btn-sec btn-sm" onclick="document.getElementById('cfFile').click()">📷 Nueva foto</button>
+      </div>
+      <div class="sbar" id="cf-status"></div>
+      <div class="loader" id="cf-loader"><div class="spinner"></div><div class="ltxt">LEYENDO LISTA...</div></div>
+      <button class="btn btn-primary" id="cf-analyze-btn" onclick="analyzeCF()" disabled>🔍 ANALIZAR LISTA</button>
     </div>
-    <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeInvoice()" disabled>🔍 ANALIZAR FACTURA</button>
 
-    <!-- MANUAL SECTION -->
-    <div id="manualSection" style="display:none;">
+    <!-- MANUAL -->
+    <div id="cf-manual-area" style="display:none;">
       <div class="card">
-        <div class="card-title">ENTRADA MANUAL</div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Ingresa cantidades. Deja en 0 los que no aplican.</p>
-        <div id="manualList"></div>
-        <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:8px;padding:10px;margin-top:10px;">
-          <div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:8px;">➕ PRODUCTO NUEVO</div>
-          <div style="display:flex;gap:8px;">
-            <input class="input-field" id="newProdName" placeholder="Nombre..." style="flex:2;font-size:12px;padding:8px;">
-            <input type="number" min="0" value="0" id="newProdQty" style="width:65px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;text-align:center;">
-            <button onclick="addNewManualProduct()" style="background:var(--green);border:none;color:#000;padding:8px 14px;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;">+</button>
+        <div class="card-title">LISTA CUARTO FRÍO</div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Ingresa cantidades. Deja en 0 los que no aplican.</p>
+        <div class="prod-fixed-list" id="cf-manual-list"></div>
+        <div class="add-new-prod-box">
+          <div class="add-new-title">➕ PRODUCTO NUEVO</div>
+          <div class="add-new-row">
+            <input class="if" id="cf-new-name" placeholder="Nombre del producto..." style="flex:2;font-size:12px;padding:8px;">
+            <input type="number" min="0" value="0" id="cf-new-cajas" class="qty-in" placeholder="Caj" style="width:45px;">
+            <input type="number" min="0" value="0" id="cf-new-und" class="qty-in" placeholder="Und" style="width:45px;">
+            <button onclick="addCFNewProd()" style="background:var(--green);border:none;color:#000;padding:7px 12px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;">+</button>
           </div>
         </div>
       </div>
-      <div class="input-group">
-        <div class="input-label">CHOFER</div>
-        <input class="input-field" id="manualChofer" placeholder="Nombre del chofer...">
-      </div>
-      <div class="input-group">
-        <div class="input-label">FICHA</div>
-        <input class="input-field" id="manualFicha" placeholder="Número de ficha...">
-      </div>
-      <button class="btn btn-green" onclick="saveManual()">✅ AGREGAR A SESIÓN</button>
+      <button class="btn btn-green" onclick="saveCFManual()">💾 GUARDAR LISTA</button>
     </div>
 
-  <!-- RESULT SECTION -->
-  <div id="resultSection" style="display:none">
-    <div class="card">
-      <div class="session-header">
-        <div class="card-title" style="margin-bottom:0">RESULTADO</div>
-        <div id="choferChip"></div>
-      </div>
-      <div style="overflow-x:auto;">
-        <table class="result-table" id="resultTable">
-          <thead>
-            <tr>
-              <th>PRODUCTO</th>
-              <th>CANT</th>
-              <th>CAJAS</th>
-              <th>SUELTAS</th>
-            </tr>
-          </thead>
-          <tbody id="resultBody"></tbody>
-        </table>
-      </div>
-    </div>
-    <button class="btn btn-green" onclick="addToSession()">✅ AGREGAR A SESIÓN</button>
-  </div>
-</div>
-
-<!-- PAGE: SESSION -->
-<div class="page" id="page-session">
-  <div style="margin-top:16px">
-    <div class="card">
-      <div class="session-header">
-        <div class="card-title" style="margin-bottom:0">RESUMEN DE SESIÓN</div>
-        <div class="session-count" id="sessionCount">0 FACTURAS</div>
-      </div>
-      <div id="sessionContent">
-        <div class="empty-state">
-          <div class="icon">📋</div>
-          <p>Aún no hay facturas en esta sesión.<br>Ve a ESCANEAR para agregar.</p>
+    <!-- RESULT -->
+    <div id="cf-result" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:0;">PRODUCTOS LEÍDOS</div>
+          <span class="badge bc" id="cf-count">0</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th></tr></thead>
+          <tbody id="cf-result-body"></tbody></table>
         </div>
       </div>
+      <button class="btn btn-green" onclick="saveCF()">💾 GUARDAR LISTA DEL DÍA</button>
     </div>
-    <button class="btn btn-danger" onclick="clearSession()" style="font-size:16px;">🗑 LIMPIAR SESIÓN</button>
   </div>
 </div>
 
-<!-- PAGE: CHOFERES -->
+<!-- ═══════════════ PAGE: CHOFERES ═══════════════ -->
 <div class="page" id="page-choferes">
-  <div style="margin-top:16px">
-    <div id="choferesList">
-      <div class="empty-state">
-        <div class="icon">🚚</div>
-        <p>No hay choferes registrados aún.<br>Se crean automáticamente al analizar facturas.</p>
+  <div style="margin-top:13px;">
+
+    <!-- CHOFER SELECTOR -->
+    <div class="card">
+      <div class="card-title">DATOS DEL CHOFER</div>
+      <div class="il">SELECCIONAR CHOFER</div>
+      <div class="cs" id="chofer-cs">
+        <button class="cs-btn" onclick="toggleCS('chofer-cs')" type="button">
+          <span id="chofer-cs-label" style="color:var(--muted);">— Elige o crea chofer —</span>
+          <span style="color:var(--cyan);">▾</span>
+        </button>
+        <div class="cs-dd" id="chofer-cs-dd"></div>
+      </div>
+      <div class="new-cf-box" id="new-chofer-box">
+        <div class="il">NOMBRE DEL NUEVO CHOFER</div>
+        <input class="if" id="ch-nombre-new" placeholder="Escribe el nombre...">
+      </div>
+      <input type="hidden" id="ch-nombre" value="">
+      <div class="ig" style="margin-top:8px;">
+        <div class="il">FICHA / PLACA</div>
+        <input class="if" id="ch-ficha" placeholder="Número de ficha...">
       </div>
     </div>
+
+    <!-- MODE TOGGLE -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="ch-m-scan" onclick="setCHMode('scan')">📷 ESCANEAR</button>
+      <button class="mode-btn" id="ch-m-manual" onclick="setCHMode('manual')">✏️ MANUAL</button>
+    </div>
+
+    <!-- SCAN -->
+    <div id="ch-scan-area">
+      <input type="file" id="chFile" accept="image/*" capture="environment" onchange="handleCHImg(event)" style="display:none">
+      <div class="scan-zone" id="chZone" onclick="document.getElementById('chFile').click()">
+        <div class="scan-line"></div>
+        <div class="sz-ph"><div class="sz-icon">📄</div><div class="sz-label">FOTO DE FACTURA<br>DEL CHOFER</div></div>
+        <img id="chPreview" src="" alt="">
+      </div>
+      <div class="row-btns">
+        <button class="btn btn-danger btn-sm" onclick="clearCHImg()">🗑 Borrar</button>
+        <button class="btn btn-sec btn-sm" onclick="document.getElementById('chFile').click()">📷 Nueva foto</button>
+      </div>
+      <div class="sbar" id="ch-status"></div>
+      <div class="loader" id="ch-loader"><div class="spinner"></div><div class="ltxt">LEYENDO FACTURA...</div></div>
+      <button class="btn btn-primary" id="ch-analyze-btn" onclick="analyzeCH()" disabled>🔍 ANALIZAR FACTURA</button>
+    </div>
+
+    <!-- MANUAL -->
+    <div id="ch-manual-area" style="display:none;">
+      <div class="card">
+        <div class="card-title">FACTURA MANUAL</div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Ingresa cantidades. Deja en 0 los que no aplican.</p>
+        <div class="prod-fixed-list" id="ch-manual-list"></div>
+        <div class="add-new-prod-box">
+          <div class="add-new-title">➕ PRODUCTO NUEVO</div>
+          <div class="add-new-row">
+            <input class="if" id="ch-new-name" placeholder="Nombre del producto..." style="flex:2;font-size:12px;padding:8px;">
+            <input type="number" min="0" value="0" id="ch-new-qty" class="qty-in">
+            <button onclick="addCHNewProd()" style="background:var(--green);border:none;color:#000;padding:7px 12px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;">+</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-green" onclick="saveCHManual()">✅ AGREGAR A DESPACHO</button>
+    </div>
+
+    <!-- RESULT -->
+    <div id="ch-result" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:0;" id="ch-result-title">PRODUCTOS</div>
+          <span class="badge bc" id="ch-count">0</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl"><thead><tr><th>PRODUCTO</th><th>UND</th><th>CAJAS</th><th>SUELTAS</th></tr></thead>
+          <tbody id="ch-result-body"></tbody></table>
+        </div>
+      </div>
+      <button class="btn btn-green" onclick="saveCH()">✅ AGREGAR A DESPACHO</button>
+    </div>
+
+    <!-- DESPACHO SESIÓN -->
+    <hr class="sep">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="card-title" style="margin-bottom:0;">DESPACHO DEL DÍA</div>
+        <span class="badge bo" id="ch-sess-count">0</span>
+      </div>
+      <div id="ch-sess-list"><div class="empty"><div class="ei">📋</div><p>Aún no hay facturas.</p></div></div>
+    </div>
+
+    <!-- MARCAR DESPACHO -->
+    <div class="card" id="mark-section" style="display:none;">
+      <div class="card-title">✅ MARCAR DESPACHO</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Marca cada producto como entregado o retirado/sumado con su cantidad.</p>
+      <div id="mark-list"></div>
+      <button class="btn btn-green" style="margin-top:10px;" onclick="saveMarks()">💾 GUARDAR MARCAS</button>
+    </div>
+
+    <button class="btn btn-danger" style="font-size:14px;" onclick="clearDespacho()">🗑 LIMPIAR DESPACHO</button>
   </div>
 </div>
 
-<!-- MODAL: DRIVER DETAIL -->
-<div class="modal-overlay" id="driverModal">
-  <div class="modal">
-    <div class="modal-title" id="driverModalTitle">CHOFER</div>
-    <div id="driverModalContent"></div>
-    <button class="btn btn-secondary" style="font-size:16px; margin-top:8px;" onclick="closeModal('driverModal')">← VOLVER</button>
-  </div>
-</div>
-
-<!-- MODAL: ADMIN -->
-<div class="modal-overlay" id="adminModal">
-  <div class="modal">
-    <div class="modal-title">⚙ PANEL ADMIN</div>
-    <div id="adminContent">
-      <div class="input-group">
-        <div class="input-label">CONTRASEÑA</div>
-        <input class="input-field" type="password" id="adminPass" placeholder="••••••••" />
-      </div>
-      <button class="btn btn-primary" onclick="verifyAdmin()" style="font-size:18px;">ENTRAR</button>
-      <button class="btn btn-secondary" style="font-size:16px;" onclick="closeModal('adminModal')">CANCELAR</button>
-    </div>
-    <div id="adminPanel" style="display:none">
-      <div class="input-group">
-        <div class="input-label">🔑 API KEY DE ANTHROPIC</div>
-        <input class="api-key-field" id="apiKeyInput" type="password" placeholder="sk-ant-..." />
-        <button class="btn btn-primary" style="margin-top:8px; font-size:16px;" onclick="saveApiKey()">GUARDAR API KEY</button>
-      </div>
-      <hr style="border-color:var(--border); margin:16px 0;">
-      <div class="card-title">UNIDADES POR CAJA</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:12px; letter-spacing:0.5px;">Configura cuántas unidades tiene cada caja por producto</p>
-      <div id="productConfigList"></div>
-      <button class="btn btn-green" style="margin-top:12px; font-size:18px;" onclick="saveProductConfig()">💾 GUARDAR CAMBIOS</button>
-      <button class="btn btn-secondary" style="font-size:16px;" onclick="closeModal('adminModal')">CERRAR</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ============================================================
-// STATE
-// ============================================================
-const ADMIN_PASS = 'polar2024';
-let currentImage = null;
-let currentResult = null;
-let session = JSON.parse(localStorage.getItem('fs_session') || '[]');
-let drivers = JSON.parse(localStorage.getItem('fs_drivers') || '{}');
-let productConfig = JSON.parse(localStorage.getItem('fs_config') || '{}');
-let apiKey = localStorage.getItem('fs_apikey') || '';
-
-// Default units per box if not configured
-const DEFAULT_UNITS = 20;
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  const tabs = document.querySelectorAll('.tab');
-  const map = { scan: 0, session: 1, choferes: 2 };
-  tabs[map[name]].classList.add('active');
-  if (name === 'session') renderSession();
-  if (name === 'choferes') renderDrivers();
-}
-
-// ============================================================
-// IMAGE HANDLING
-// ============================================================
-function handleImage(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  currentImage = file;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const img = document.getElementById('previewImg');
-    img.src = ev.target.result;
-    const zone = document.getElementById('scanZone');
-    zone.classList.add('has-image');
-    document.getElementById('analyzeBtn').disabled = false;
-    hideStatus();
-    document.getElementById('resultSection').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearImage() {
-  currentImage = null;
-  currentResult = null;
-  document.getElementById('previewImg').src = '';
-  document.getElementById('scanZone').classList.remove('has-image');
-  document.getElementById('fileInput').value = '';
-  document.getElementById('analyzeBtn').disabled = true;
-  document.getElementById('resultSection').style.display = 'none';
-  hideStatus();
-}
-
-// ============================================================
-// ANALYZE
-// ============================================================
-async function analyzeInvoice() {
-  if (!currentImage) return;
-  
-  const key = apiKey || localStorage.getItem('fs_apikey') || '';
-  if (!key) {
-    showStatus('error', '❌ Falta API Key. Ve a ADMIN para configurarla.');
-    return;
-  }
-
-  const chofer = document.getElementById('choferInput').value.trim();
-  if (!chofer) {
-    showStatus('error', '❌ Ingresa el nombre del chofer primero.');
-    return;
-  }
-
-  // Show loader
-  document.getElementById('loader').classList.add('active');
-  document.getElementById('analyzeBtn').disabled = true;
-  document.getElementById('scanZone').classList.add('scanning');
-  hideStatus();
-
-  try {
-    // Convert image to base64
-    const base64 = await fileToBase64(currentImage);
-    const mediaType = currentImage.type || 'image/jpeg';
-
-    const prompt = `Eres un asistente que lee facturas de helados Polar/Bon en República Dominicana.
-    
-Analiza esta factura y extrae TODOS los productos con sus cantidades.
-
-Responde SOLO en JSON, sin texto adicional, sin bloques de código, sin backticks. El formato exacto es:
-
-{"productos":[{"nombre":"NOMBRE DEL PRODUCTO","cantidad":20},{"nombre":"OTRO PRODUCTO","cantidad":15}]}
-
-Reglas:
-- Extrae TODOS los productos que aparecen en la factura
-- La cantidad es el número de unidades
-- El nombre debe ser el nombre completo del producto como aparece en la factura
-- Si no puedes leer un producto claramente, inclúyelo con el nombre que puedas leer
-- Responde SOLO el JSON, nada más`;
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || 'Error de API');
-    }
-
-    const data = await response.json();
-    const text = data.content[0].text.trim();
-    
-    // Parse JSON
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      const match = text.match(/\{[\s\S]*\}/);
-      if (match) parsed = JSON.parse(match[0]);
-      else throw new Error('No se pudo leer la respuesta de la IA');
-    }
-
-    currentResult = { productos: parsed.productos, chofer, ficha: document.getElementById('fichaInput').value.trim() };
-    renderResult(parsed.productos, chofer);
-    showStatus('success', `✅ ${parsed.productos.length} productos encontrados`);
-
-  } catch (err) {
-    showStatus('error', '❌ ' + err.message);
-  } finally {
-    document.getElementById('loader').classList.remove('active');
-    document.getElementById('analyzeBtn').disabled = false;
-    document.getElementById('scanZone').classList.remove('scanning');
-  }
-}
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => resolve(e.target.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-// ============================================================
-// RENDER RESULT
-// ============================================================
-function renderResult(productos, chofer) {
-  const tbody = document.getElementById('resultBody');
-  tbody.innerHTML = '';
-
-  productos.forEach((p, i) => {
-    const unitsPerBox = productConfig[p.nombre] || DEFAULT_UNITS;
-    const cajas = Math.floor(p.cantidad / unitsPerBox);
-    const sueltas = p.cantidad % unitsPerBox;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="font-weight:700; font-size:12px; max-width:120px; word-break:break-word;">${p.nombre}</td>
-      <td><input class="editable" type="number" value="${p.cantidad}" min="0" id="qty_${i}" onchange="recalcRow(${i}, '${p.nombre}')"></td>
-      <td><span class="badge-cajas" id="cajas_${i}">${cajas} caj</span></td>
-      <td><span class="badge-sueltas" id="sueltas_${i}">${sueltas} und</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  document.getElementById('choferChip').innerHTML = `<span class="chip chip-cyan">${chofer}</span>`;
-  document.getElementById('resultSection').style.display = 'block';
-}
-
-function recalcRow(i, nombre) {
-  const qty = parseInt(document.getElementById('qty_' + i).value) || 0;
-  const unitsPerBox = productConfig[nombre] || DEFAULT_UNITS;
-  const cajas = Math.floor(qty / unitsPerBox);
-  const sueltas = qty % unitsPerBox;
-  document.getElementById('cajas_' + i).textContent = cajas + ' caj';
-  document.getElementById('sueltas_' + i).textContent = sueltas + ' und';
-  // Update currentResult
-  if (currentResult) {
-    const prod = currentResult.productos[i];
-    if (prod) prod.cantidad = qty;
-  }
-}
-
-// ============================================================
-// SESSION
-// ============================================================
-function addToSession() {
-  if (!currentResult) return;
-  
-  // Get current quantities from inputs
-  const rows = document.querySelectorAll('#resultBody tr');
-  const productos = [];
-  rows.forEach((row, i) => {
-    const input = row.querySelector('.editable');
-    const name = currentResult.productos[i]?.nombre || '';
-    if (name) productos.push({ nombre: name, cantidad: parseInt(input?.value) || 0 });
-  });
-
-  const entry = {
-    id: Date.now(),
-    chofer: currentResult.chofer,
-    ficha: currentResult.ficha,
-    fecha: new Date().toLocaleDateString('es-DO'),
-    hora: new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }),
-    productos
-  };
-
-  session.push(entry);
-  localStorage.setItem('fs_session', JSON.stringify(session));
-
-  // Update driver history
-  updateDriver(entry);
-
-  showStatus('success', `✅ Agregado a sesión — ${entry.chofer}`);
-  document.getElementById('resultSection').style.display = 'none';
-  clearImage();
-}
-
-function updateDriver(entry) {
-  if (!drivers[entry.chofer]) {
-    drivers[entry.chofer] = { nombre: entry.chofer, fichas: [], historial: [] };
-  }
-  const driver = drivers[entry.chofer];
-  if (entry.ficha && !driver.fichas.includes(entry.ficha)) driver.fichas.push(entry.ficha);
-  driver.historial.push({ fecha: entry.fecha, hora: entry.hora, ficha: entry.ficha, productos: entry.productos });
-  
-  // Recalculate totals
-  driver.totales = {};
-  driver.historial.forEach(h => {
-    h.productos.forEach(p => {
-      driver.totales[p.nombre] = (driver.totales[p.nombre] || 0) + p.cantidad;
-    });
-  });
-
-  localStorage.setItem('fs_drivers', JSON.stringify(drivers));
-}
-
-function renderSession() {
-  const content = document.getElementById('sessionContent');
-  document.getElementById('sessionCount').textContent = session.length + ' FACTURAS';
-
-  if (session.length === 0) {
-    content.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>Aún no hay facturas en esta sesión.</p></div>`;
-    return;
-  }
-
-  // Aggregate all products
-  const totals = {};
-  session.forEach(entry => {
-    entry.productos.forEach(p => {
-      totals[p.nombre] = (totals[p.nombre] || 0) + p.cantidad;
-    });
-  });
-
-  let html = `<div style="overflow-x:auto;"><table class="result-table"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th><th>SUELTAS</th></tr></thead><tbody>`;
-  
-  Object.entries(totals).forEach(([nombre, cantidad]) => {
-    const unitsPerBox = productConfig[nombre] || DEFAULT_UNITS;
-    const cajas = Math.floor(cantidad / unitsPerBox);
-    const sueltas = cantidad % unitsPerBox;
-    html += `<tr>
-      <td style="font-weight:700; font-size:12px; max-width:120px; word-break:break-word;">${nombre}</td>
-      <td style="font-family:'Share Tech Mono',monospace;">${cantidad}</td>
-      <td><span class="badge-cajas">${cajas} caj</span></td>
-      <td><span class="badge-sueltas">${sueltas} und</span></td>
-    </tr>`;
-  });
-
-  html += `</tbody></table></div>`;
-
-  // Entries list
-  html += `<div style="margin-top:16px;"><div class="card-title" style="font-size:14px;">FACTURAS EN SESIÓN</div>`;
-  session.forEach((entry, i) => {
-    html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-      <div>
-        <div style="font-weight:700; font-size:13px;">${entry.chofer} <span class="chip chip-orange">${entry.ficha || 'S/F'}</span></div>
-        <div style="font-size:11px; color:var(--muted);">${entry.fecha} ${entry.hora}</div>
-      </div>
-      <button onclick="removeFromSession(${i})" style="background:transparent; border:1px solid var(--red); color:var(--red); padding:4px 10px; border-radius:6px; font-size:12px; cursor:pointer;">✕</button>
-    </div>`;
-  });
-  html += `</div>`;
-
-  content.innerHTML = html;
-}
-
-function removeFromSession(i) {
-  session.splice(i, 1);
-  localStorage.setItem('fs_session', JSON.stringify(session));
-  renderSession();
-}
-
-function clearSession() {
-  if (!confirm('¿Limpiar toda la sesión?')) return;
-  session = [];
-  localStorage.setItem('fs_session', JSON.stringify(session));
-  renderSession();
-}
-
-// ============================================================
-// DRIVERS
-// ============================================================
-function renderDrivers() {
-  const list = document.getElementById('choferesList');
-  const keys = Object.keys(drivers);
-  
-  if (keys.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="icon">🚚</div><p>No hay choferes registrados aún.<br>Se crean automáticamente al analizar facturas.</p></div>`;
-    return;
-  }
-
-  let html = '';
-  keys.forEach(nombre => {
-    const d = drivers[nombre];
-    const totalProductos = Object.keys(d.totales || {}).length;
-    const totalFacturas = d.historial.length;
-    html += `<div class="driver-card" onclick="showDriver('${nombre}')">
-      <div class="driver-name">${nombre}</div>
-      <div class="driver-meta">📋 ${totalFacturas} facturas · 📦 ${totalProductos} productos</div>
-      <div class="driver-meta">🔖 Fichas: ${(d.fichas || []).join(', ') || 'N/A'}</div>
-    </div>`;
-  });
-
-  html += `<button class="btn btn-danger" style="font-size:14px; margin-top:8px;" onclick="clearDrivers()">🗑 BORRAR TODOS LOS CHOFERES</button>`;
-  list.innerHTML = html;
-}
-
-function showDriver(nombre) {
-  const d = drivers[nombre];
-  if (!d) return;
-
-  document.getElementById('driverModalTitle').textContent = nombre;
-
-  let html = `<div style="overflow-x:auto; margin-bottom:16px;">
-    <div style="font-size:12px; color:var(--muted); margin-bottom:12px; letter-spacing:1px;">TOTAL ACUMULADO</div>
-    <table class="result-table"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th><th>SUELTAS</th></tr></thead><tbody>`;
-
-  Object.entries(d.totales || {}).forEach(([nombre_prod, cantidad]) => {
-    const unitsPerBox = productConfig[nombre_prod] || DEFAULT_UNITS;
-    const cajas = Math.floor(cantidad / unitsPerBox);
-    const sueltas = cantidad % unitsPerBox;
-    html += `<tr>
-      <td style="font-weight:700; font-size:12px; max-width:100px; word-break:break-word;">${nombre_prod}</td>
-      <td style="font-family:'Share Tech Mono',monospace;">${cantidad}</td>
-      <td><span class="badge-cajas">${cajas} caj</span></td>
-      <td><span class="badge-sueltas">${sueltas} und</span></td>
-    </tr>`;
-  });
-
-  html += `</tbody></table></div>`;
-
-  // Historial
-  html += `<div class="card-title" style="font-size:14px;">HISTORIAL (${d.historial.length} facturas)</div>`;
-  [...d.historial].reverse().forEach(h => {
-    html += `<div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-      <div style="font-size:13px; font-weight:700;">${h.fecha} ${h.hora} <span class="chip chip-orange">${h.ficha || 'S/F'}</span></div>
-      <div style="font-size:11px; color:var(--muted);">${h.productos.map(p => p.nombre + ' ×' + p.cantidad).join(' · ')}</div>
-    </div>`;
-  });
-
-  document.getElementById('driverModalContent').innerHTML = html;
-  document.getElementById('driverModal').classList.add('active');
-}
-
-function clearDrivers() {
-  if (!confirm('¿Borrar el historial de todos los choferes?')) return;
-  drivers = {};
-  localStorage.setItem('fs_drivers', JSON.stringify(drivers));
-  renderDrivers();
-}
-
-// ============================================================
-// ADMIN
-// ============================================================
-function openAdminModal() {
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('adminContent').style.display = 'block';
-  document.getElementById('adminPass').value = '';
-  document.getElementById('adminModal').classList.add('active');
-}
-
-function verifyAdmin() {
-  const pass = document.getElementById('adminPass').value;
-  if (pass === ADMIN_PASS) {
-    document.getElementById('adminContent').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-    document.getElementById('apiKeyInput').value = apiKey;
-    renderProductConfig();
-  } else {
-    document.getElementById('adminPass').style.borderColor = 'var(--red)';
-    setTimeout(() => document.getElementById('adminPass').style.borderColor = '', 1000);
-  }
-}
-
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  apiKey = key;
-  localStorage.setItem('fs_apikey', key);
-  alert('✅ API Key guardada');
-}
-
-function renderProductConfig() {
-  // Get all known products from drivers and session
-  const allProducts = new Set();
-  Object.values(drivers).forEach(d => Object.keys(d.totales || {}).forEach(p => allProducts.add(p)));
-  session.forEach(e => e.productos.forEach(p => allProducts.add(p.nombre)));
-
-  const list = document.getElementById('productConfigList');
-  if (allProducts.size === 0) {
-    list.innerHTML = '<p style="font-size:12px; color:var(--muted);">Analiza facturas primero para ver los productos aquí.</p>';
-    return;
-  }
-
-  let html = '';
-  allProducts.forEach(nombre => {
-    const val = productConfig[nombre] || DEFAULT_UNITS;
-    html += `<div class="product-row">
-      <div class="product-row-name">${nombre}</div>
-      <input class="product-row-input" type="number" min="1" value="${val}" data-product="${nombre}">
-      <span style="font-size:11px; color:var(--muted);">und/caja</span>
-    </div>`;
-  });
-  list.innerHTML = html;
-}
-
-function saveProductConfig() {
-  document.querySelectorAll('.product-row-input').forEach(input => {
-    const product = input.dataset.product;
-    const val = parseInt(input.value) || DEFAULT_UNITS;
-    productConfig[product] = val;
-  });
-  localStorage.setItem('fs_config', JSON.stringify(productConfig));
-  alert('✅ Configuración guardada');
-  closeModal('adminModal');
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('active');
-}
-
-// ============================================================
-// STATUS
-// ============================================================
-function showStatus(type, msg) {
-  const bar = document.getElementById('statusBar');
-  bar.style.display = 'flex';
-  bar.className = 'status-bar ' + type;
-  bar.innerHTML = `<div class="status-dot ${type}"></div><div class="status-text">${msg}</div>`;
-}
-function hideStatus() {
-  document.getElementById('statusBar').style.display = 'none';
-}
-
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('active');
-  });
-});
-</script>
-
-<!-- PAGE: COMPARAR -->
+<!-- ═══════════════ PAGE: COMPARAR ═══════════════ -->
 <div class="page" id="page-comparar">
-  <div style="margin-top:16px;">
+  <div style="margin-top:13px;">
     <div class="card">
       <div class="card-title">📊 COMPARAR</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">C.Frío vs suma total de choferes</p>
-      <button class="btn btn-primary" onclick="runCompare()" style="font-size:18px;">⚡ COMPARAR AHORA</button>
-    </div>
-
-    <!-- SUMMARY -->
-    <div id="cmp-summary" style="display:none;margin-bottom:14px;">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Lista del C.Frío vs suma total de todas las facturas de choferes registradas.</p>
       <div style="display:flex;gap:8px;">
-        <div style="flex:1;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:10px;padding:10px;text-align:center;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--green);" id="cmp-ok">0</div>
-          <div style="font-size:10px;color:var(--green);letter-spacing:1px;font-weight:700;">CUADRAN</div>
-        </div>
-        <div style="flex:1;background:rgba(255,214,0,0.08);border:1px solid rgba(255,214,0,0.3);border-radius:10px;padding:10px;text-align:center;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:#ffd600;" id="cmp-over">0</div>
-          <div style="font-size:10px;color:#ffd600;letter-spacing:1px;font-weight:700;">SOBRANTE</div>
-        </div>
-        <div style="flex:1;background:rgba(255,51,85,0.08);border:1px solid rgba(255,51,85,0.3);border-radius:10px;padding:10px;text-align:center;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--red);" id="cmp-under">0</div>
-          <div style="font-size:10px;color:var(--red);letter-spacing:1px;font-weight:700;">FALTANTE</div>
-        </div>
+        <button class="btn btn-primary" style="flex:1;font-size:15px;" onclick="runCompare('actual')">⚡ SESIÓN ACTUAL</button>
+        <button class="btn btn-sec" style="flex:1;font-size:15px;" onclick="showDatePicker()">📅 POR FECHA</button>
       </div>
     </div>
 
-    <!-- DETAIL LIST -->
-    <div id="cmp-detail"></div>
+    <!-- DATE PICKER -->
+    <div id="cmp-date-picker" style="display:none;" class="card">
+      <div class="card-title">ELEGIR FECHA</div>
+      <div class="il">FECHAS DISPONIBLES</div>
+      <div class="cs" id="date-cs">
+        <button class="cs-btn" onclick="toggleCS('date-cs')" type="button">
+          <span id="date-cs-label" style="color:var(--muted);">— Elige una fecha —</span>
+          <span style="color:var(--cyan);">▾</span>
+        </button>
+        <div class="cs-dd" id="date-cs-dd"></div>
+      </div>
+      <input type="hidden" id="cmp-date-val" value="">
+      <button class="btn btn-orange" onclick="runCompare('historico')">📂 COMPARAR FECHA</button>
+    </div>
+
+    <div class="sbar" id="cmp-status"></div>
+
+    <!-- SUMMARY -->
+    <div id="cmp-summary" style="display:none;">
+      <div class="sum-boxes">
+        <div class="sum-box" style="background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.3);">
+          <div class="sum-box-num" style="color:var(--green);" id="cmp-ok">0</div>
+          <div class="sum-box-lbl" style="color:var(--green);">CUADRAN</div>
+        </div>
+        <div class="sum-box" style="background:rgba(255,214,0,.07);border:1px solid rgba(255,214,0,.3);">
+          <div class="sum-box-num" style="color:var(--yellow);" id="cmp-over">0</div>
+          <div class="sum-box-lbl" style="color:var(--yellow);">SOBRANTE</div>
+        </div>
+        <div class="sum-box" style="background:rgba(255,34,68,.07);border:1px solid rgba(255,34,68,.3);">
+          <div class="sum-box-num" style="color:var(--red);" id="cmp-under">0</div>
+          <div class="sum-box-lbl" style="color:var(--red);">FALTANTE</div>
+        </div>
+      </div>
+      <div id="cmp-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE: HISTORIAL ═══════════════ -->
+<div class="page" id="page-historial">
+  <div style="margin-top:13px;">
+    <div class="card">
+      <div class="card-title">VER POR</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" style="flex:1;min-width:70px;" onclick="showHist('dias')">📅 DÍAS</button>
+        <button class="btn btn-sec btn-sm" style="flex:1;min-width:70px;" onclick="showHist('choferes')">🚚 CHOFERES</button>
+        <button class="btn btn-sec btn-sm" style="flex:1;min-width:70px;" onclick="showHist('semanal')">📊 SEMANAL</button>
+        <button class="btn btn-sec btn-sm" style="flex:1;min-width:70px;" onclick="showHist('mensual')">📆 MENSUAL</button>
+        <button class="btn btn-sec btn-sm" style="flex:1;min-width:70px;" onclick="showHist('anual')">📈 ANUAL</button>
+      </div>
+    </div>
+    <div id="hist-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- ADMIN -->
+<div class="modal-ov" id="adminModal">
+  <div class="modal">
+    <div class="modal-title">⚙ ADMIN</div>
+    <div id="admin-auth">
+      <div class="ig"><div class="il">CONTRASEÑA</div>
+        <input class="if" type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')verifyAdmin()">
+      </div>
+      <button class="btn btn-primary" onclick="verifyAdmin()">ENTRAR</button>
+      <button class="btn btn-sec" style="font-size:14px;" onclick="closeModal('adminModal')">CANCELAR</button>
+    </div>
+    <div id="admin-panel" style="display:none;">
+      <div class="ig"><div class="il">🔑 GEMINI API KEY</div>
+        <input class="if" type="password" id="admin-apikey" placeholder="AIzaSy...">
+        <button class="btn btn-primary" style="margin-top:8px;font-size:15px;" onclick="saveApiKey()">GUARDAR API KEY</button>
+      </div>
+      <hr class="sep">
+      <div class="card-title">UNIDADES POR CAJA</div>
+      <div id="admin-products" style="max-height:180px;overflow-y:auto;margin-bottom:10px;"></div>
+      <button class="btn btn-green" style="font-size:15px;" onclick="saveProductConfig()">💾 GUARDAR CONFIG</button>
+      <hr class="sep">
+      <div class="card-title">🔢 ORDEN DE CHOFERES</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Arrastra para reorganizar. El usuario ve este orden fijo.</p>
+      <div id="admin-chofer-order" style="max-height:180px;overflow-y:auto;margin-bottom:10px;"></div>
+      <button class="btn btn-orange" style="font-size:15px;" onclick="saveChoferOrder()">💾 GUARDAR ORDEN</button>
+      <hr class="sep">
+      <button class="btn btn-danger" style="font-size:14px;" onclick="clearAllData()">⚠️ BORRAR TODOS LOS DATOS</button>
+      <button class="btn btn-sec" style="font-size:14px;" onclick="closeModal('adminModal')">CERRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN CONFIRM -->
+<div class="modal-ov" id="adminCbModal">
+  <div class="modal">
+    <div class="modal-title">🔓 CONFIRMAR ADMIN</div>
+    <div class="ig"><div class="il">CONTRASEÑA</div>
+      <input class="if" type="password" id="adminCb-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')verifyCbAdmin()">
+    </div>
+    <button class="btn btn-primary" onclick="verifyCbAdmin()">CONFIRMAR</button>
+    <button class="btn btn-sec" style="font-size:14px;" onclick="closeModal('adminCbModal')">CANCELAR</button>
+  </div>
+</div>
+
+<!-- DRIVER DETAIL -->
+<div class="modal-ov" id="driverModal">
+  <div class="modal">
+    <div class="modal-title" id="dm-title">CHOFER</div>
+    <div id="dm-content" style="max-height:70vh;overflow-y:auto;"></div>
+    <button class="btn btn-sec" style="font-size:14px;margin-top:10px;" onclick="closeModal('driverModal')">← VOLVER</button>
+  </div>
+</div>
+
+<!-- DAY DETAIL -->
+<div class="modal-ov" id="dayModal">
+  <div class="modal">
+    <div class="modal-title" id="day-title">DÍA</div>
+    <div id="day-content" style="max-height:70vh;overflow-y:auto;"></div>
+    <button class="btn btn-sec" style="font-size:14px;margin-top:10px;" onclick="closeModal('dayModal')">← VOLVER</button>
   </div>
 </div>
 
 <script>
-// ════════════════════════════════════
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+const PASS = 'polar2024';
+const DEFAULT_UPB = 24;
+const TODAY = () => new Date().toISOString().split('T')[0];
+const TODAYFMT = () => new Date().toLocaleDateString('es-DO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+
+let apiKey = localStorage.getItem('fs_apikey') || '';
+let productConfig = JSON.parse(localStorage.getItem('fs_config') || '{}');
+let history = JSON.parse(localStorage.getItem('fs_history') || '{}');
+let despacho = JSON.parse(localStorage.getItem('fs_despacho') || '[]');
+let adminCallback = null;
+let cfImg = null, cfResult = null;
+let chImg = null, chResult = null;
+let histView = 'dias';
+let marks = {}; // {prodName: {ent:bool, entQty:num, ret:bool, retQty:num}}
+
+// ════════════════════════════════════════════════════════
 // THEME
-// ════════════════════════════════════
+// ════════════════════════════════════════════════════════
 function toggleTheme() {
-  const isLight = document.body.classList.toggle('light');
-  localStorage.setItem('fs_theme', isLight ? 'light' : 'dark');
-  document.getElementById('theme-btn').textContent = isLight ? '☀️' : '🌙';
+  const light = document.body.classList.toggle('light');
+  localStorage.setItem('fs_theme', light ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = light ? '☀️' : '🌙';
 }
 (function(){
   if(localStorage.getItem('fs_theme')==='light'){
     document.body.classList.add('light');
-    const btn=document.getElementById('theme-btn');
-    if(btn) btn.textContent='☀️';
+    const b=document.getElementById('theme-btn');
+    if(b) b.textContent='☀️';
   }
 })();
 
-// ════════════════════════════════════
-// SHOW PAGE (extend existing)
-// ════════════════════════════════════
-const _origShowPage = typeof showPage === 'function' ? showPage : null;
-function showPage(name) {
+// ════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════
+function goTab(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  const pg = document.getElementById('page-'+name);
-  if(pg) pg.classList.add('active');
-  const map={scan:0,session:1,choferes:2,comparar:3};
-  const tabs=document.querySelectorAll('.tab');
-  if(tabs[map[name]]) tabs[map[name]].classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  const map={cf:0,choferes:1,comparar:2,historial:3};
+  document.querySelectorAll('.tab')[map[name]].classList.add('active');
+  if(name==='cf') initCFPage();
+  if(name==='choferes'){ renderDespachoSess(); populateChoferDD(); }
+  if(name==='comparar') populateDateDD();
+  if(name==='historial') showHist(histView);
 }
 
-// ════════════════════════════════════
-// MANUAL MODE
-// ════════════════════════════════════
-let manualMode = false;
-let manualItems = []; // {nombre, cantidad}
-
-function setMode(mode) {
-  manualMode = mode === 'manual';
-  const scanZone = document.getElementById('scanZone');
-  const analyzeBtn = document.getElementById('analyzeBtn');
-  const manualSec = document.getElementById('manualSection');
-  const scanBtn = document.getElementById('mode-scan-btn');
-  const manualBtn = document.getElementById('mode-manual-btn');
-
-  if (!manualMode) {
-    scanZone.style.display='';
-    analyzeBtn.style.display='';
-    manualSec.style.display='none';
-    scanBtn.className='btn btn-primary';
-    manualBtn.style.cssText='flex:1;font-size:15px;padding:11px;background:transparent;border:1px solid var(--border);color:var(--muted);';
-  } else {
-    scanZone.style.display='none';
-    analyzeBtn.style.display='none';
-    manualSec.style.display='block';
-    scanBtn.style.cssText='';
-    scanBtn.className='btn';
-    scanBtn.style.cssText='flex:1;font-size:15px;padding:11px;background:transparent;border:1px solid var(--border);color:var(--muted);';
-    manualBtn.className='btn btn-primary';
-    manualBtn.style.cssText='flex:1;font-size:15px;padding:11px;';
-    renderManualList();
-  }
-}
-
+// ════════════════════════════════════════════════════════
+// PRODUCTS HELPERS
+// ════════════════════════════════════════════════════════
 function getAllProducts() {
-  const all = new Set();
-  const session = JSON.parse(localStorage.getItem('fs_session')||'[]');
-  session.forEach(e=>e.productos.forEach(p=>all.add(p.nombre)));
-  const drivers = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
-  drivers.forEach(n=>{
-    const dk='fs_driver_'+n.replace(/\s+/g,'_');
-    const dh=JSON.parse(localStorage.getItem(dk)||'{"historial":[]}');
+  const all = new Set(Object.keys(productConfig));
+  Object.values(history).forEach(d => {
+    if(d.cf) d.cf.productos.forEach(p=>all.add(p.nombre));
+    if(d.despacho) d.despacho.forEach(e=>e.productos.forEach(p=>all.add(p.nombre)));
+  });
+  despacho.forEach(e=>e.productos.forEach(p=>all.add(p.nombre)));
+  // Driver history
+  const dlist = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  dlist.forEach(n=>{
+    const dh=JSON.parse(localStorage.getItem('fs_drv_'+n.replace(/\W/g,'_'))||'{"historial":[]}');
     dh.historial.forEach(h=>h.productos.forEach(p=>all.add(p.nombre)));
   });
   return [...all].sort();
 }
 
-function renderManualList() {
-  const products = getAllProducts();
-  const container = document.getElementById('manualList');
-  if(products.length===0){
-    container.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:10px;">No hay productos registrados aún.<br>Usa el campo de abajo para agregar.</p>';
-    return;
+function upb(nombre) { return productConfig[nombre] || DEFAULT_UPB; }
+
+// ════════════════════════════════════════════════════════
+// CUARTO FRÍO
+// ════════════════════════════════════════════════════════
+function initCFPage() {
+  const today = TODAY();
+  const d = history[today];
+  if(d && d.cf) {
+    document.getElementById('cf-scan').style.display='none';
+    document.getElementById('cf-locked').style.display='block';
+    document.getElementById('cf-locked-msg').textContent='🔒 LISTA YA ESCANEADA — '+TODAYFMT();
+    const tbody=document.getElementById('cf-mini-body');
+    tbody.innerHTML=d.cf.productos.map(p=>`<tr><td class="pname">${p.nombre}</td><td>${p.cajas||0}</td><td>${p.unidades||0}</td><td style="color:var(--green);font-family:'Share Tech Mono',monospace;">${p.total}</td></tr>`).join('');
+  } else {
+    document.getElementById('cf-scan').style.display='block';
+    document.getElementById('cf-locked').style.display='none';
   }
-  container.innerHTML = products.map((nombre,i)=>{
-    const existing = manualItems.find(x=>x.nombre===nombre);
-    const qty = existing ? existing.cantidad : 0;
-    const highlight = qty>0 ? 'background:rgba(0,229,255,0.05);' : '';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,0.05);${highlight}">
-      <div style="flex:1;font-size:12px;font-weight:700;line-height:1.3;">${nombre}</div>
-      <input type="number" min="0" value="${qty}" id="mq_${i}"
-        onchange="updateManualItem('${nombre.replace(/'/g,"&#39;")}',this.value)"
-        style="width:65px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;text-align:center;">
-      <span style="font-size:10px;color:var(--muted);">und</span>
+}
+
+function resetCF() {
+  const today=TODAY();
+  if(history[today]) delete history[today].cf;
+  saveHistory();
+  clearCFImg();
+  initCFPage();
+}
+
+function setCFMode(mode) {
+  const isScan = mode==='scan';
+  document.getElementById('cf-scan-area').style.display=isScan?'block':'none';
+  document.getElementById('cf-manual-area').style.display=isScan?'none':'block';
+  document.getElementById('cf-m-scan').className='mode-btn'+(isScan?' active':'');
+  document.getElementById('cf-m-manual').className='mode-btn'+(isScan?'':' active');
+  if(!isScan) renderCFManualList();
+}
+
+function renderCFManualList() {
+  const products = getAllProducts();
+  const container = document.getElementById('cf-manual-list');
+  if(!products.length){ container.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:10px;">Agrega tu primer producto abajo.</p>'; return; }
+  container.innerHTML = products.map((nombre,i)=>`
+    <div class="prod-fixed-row" id="cf-prow-${i}">
+      <div class="prod-fixed-name">${nombre}</div>
+      <input class="qty-in" type="number" min="0" value="0" id="cf-cajas-${i}" onchange="highlightCFRow(${i})" placeholder="Caj" style="width:44px;" title="Cajas">
+      <span style="font-size:9px;color:var(--muted);">caj</span>
+      <input class="qty-in" type="number" min="0" value="0" id="cf-und-${i}" onchange="highlightCFRow(${i})" placeholder="Und" style="width:44px;" title="Unidades">
+      <span style="font-size:9px;color:var(--muted);">und</span>
+    </div>`).join('');
+  container.dataset.prods = JSON.stringify(products);
+}
+
+function highlightCFRow(i) {
+  const c=parseInt(document.getElementById('cf-cajas-'+i)?.value)||0;
+  const u=parseInt(document.getElementById('cf-und-'+i)?.value)||0;
+  document.getElementById('cf-prow-'+i)?.classList.toggle('has-qty', c>0||u>0);
+}
+
+function addCFNewProd() {
+  const nombre=document.getElementById('cf-new-name').value.trim();
+  if(!nombre) return;
+  if(!productConfig[nombre]) { productConfig[nombre]=DEFAULT_UPB; saveConfig(); }
+  document.getElementById('cf-new-name').value='';
+  document.getElementById('cf-new-cajas').value='0';
+  document.getElementById('cf-new-und').value='0';
+  renderCFManualList();
+}
+
+function saveCFManual() {
+  const prods=JSON.parse(document.getElementById('cf-manual-list').dataset.prods||'[]');
+  const productos=[];
+  prods.forEach((nombre,i)=>{
+    const cajas=parseInt(document.getElementById('cf-cajas-'+i)?.value)||0;
+    const und=parseInt(document.getElementById('cf-und-'+i)?.value)||0;
+    if(cajas>0||und>0){ const total=(cajas*upb(nombre))+und; productos.push({nombre,cajas,unidades:und,total}); }
+  });
+  if(!productos.length){ alert('Agrega al menos un producto'); return; }
+  const today=TODAY();
+  if(!history[today]) history[today]={};
+  history[today].cf={fecha:today,productos};
+  saveHistory();
+  showStat('cf-status','success','✅ Lista del día guardada');
+  setTimeout(()=>initCFPage(),1000);
+}
+
+function handleCFImg(e) {
+  const file=e.target.files[0]; if(!file) return;
+  cfImg=file;
+  const r=new FileReader(); r.onload=ev=>{ document.getElementById('cfPreview').src=ev.target.result; document.getElementById('cfZone').classList.add('has-image'); document.getElementById('cf-analyze-btn').disabled=false; }; r.readAsDataURL(file);
+}
+function clearCFImg() {
+  cfImg=null; document.getElementById('cfPreview').src=''; document.getElementById('cfZone').classList.remove('has-image'); document.getElementById('cfFile').value=''; document.getElementById('cf-analyze-btn').disabled=true; document.getElementById('cf-result').style.display='none'; hideStat('cf-status');
+}
+
+async function analyzeCF() {
+  if(!cfImg||!checkKey('cf-status')) return;
+  showLoader('cf-loader'); hideStat('cf-status'); document.getElementById('cf-analyze-btn').disabled=true; document.getElementById('cfZone').classList.add('scanning');
+  try {
+    const b64=await toB64(cfImg); const mt=cfImg.type||'image/jpeg';
+    const prompt=`Eres un asistente que lee listas de despacho de helados Polar/Bon en República Dominicana. Esta es una "Lista para Despacho Cuarto Frío" con columnas: Cajas / Unidades / Descripción. Extrae TODOS los productos con sus cajas y unidades exactas. Responde SOLO JSON sin texto adicional ni backticks: {"productos":[{"nombre":"PALETA CHOCO MANI 32/1","cajas":2,"unidades":1}]}`;
+    const res=await callAPI([{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data:b64}},{type:'text',text:prompt}]}]);
+    const parsed=parseJ(res); if(!parsed?.productos) throw new Error('No se pudo leer la lista');
+    cfResult={productos:parsed.productos.map(p=>({nombre:p.nombre,cajas:p.cajas||0,unidades:p.unidades||0,total:((p.cajas||0)*upb(p.nombre))+(p.unidades||0)}))};
+    renderCFResult(cfResult.productos);
+    showStat('cf-status','success',`✅ ${cfResult.productos.length} productos leídos`);
+  } catch(err){ showStat('cf-status','error','❌ '+err.message); }
+  finally{ hideLoader('cf-loader'); document.getElementById('cf-analyze-btn').disabled=false; document.getElementById('cfZone').classList.remove('scanning'); }
+}
+
+function renderCFResult(prods) {
+  document.getElementById('cf-count').textContent=prods.length+' items';
+  const tbody=document.getElementById('cf-result-body');
+  tbody.innerHTML=prods.map((p,i)=>`<tr>
+    <td class="pname">${p.nombre}</td>
+    <td><input class="qty-in" type="number" min="0" value="${p.cajas}" id="cfr-cajas-${i}" onchange="recalcCF(${i})"></td>
+    <td><input class="qty-in" type="number" min="0" value="${p.unidades}" id="cfr-und-${i}" onchange="recalcCF(${i})"></td>
+    <td id="cfr-total-${i}" style="font-family:'Share Tech Mono',monospace;color:var(--green);">${p.total}</td>
+  </tr>`).join('');
+  document.getElementById('cf-result').style.display='block';
+}
+
+function recalcCF(i) {
+  const p=cfResult.productos[i];
+  p.cajas=parseInt(document.getElementById('cfr-cajas-'+i).value)||0;
+  p.unidades=parseInt(document.getElementById('cfr-und-'+i).value)||0;
+  p.total=(p.cajas*upb(p.nombre))+p.unidades;
+  document.getElementById('cfr-total-'+i).textContent=p.total;
+}
+
+function saveCF() {
+  cfResult.productos.forEach((p,i)=>{ p.cajas=parseInt(document.getElementById('cfr-cajas-'+i)?.value)||p.cajas; p.unidades=parseInt(document.getElementById('cfr-und-'+i)?.value)||p.unidades; p.total=(p.cajas*upb(p.nombre))+p.unidades; });
+  const today=TODAY();
+  if(!history[today]) history[today]={};
+  history[today].cf={fecha:today,productos:cfResult.productos};
+  saveHistory();
+  showStat('cf-status','success','✅ Lista guardada — '+TODAYFMT());
+  setTimeout(()=>initCFPage(),1000);
+}
+
+// ════════════════════════════════════════════════════════
+// CHOFERES
+// ════════════════════════════════════════════════════════
+function setCHMode(mode) {
+  const isScan=mode==='scan';
+  document.getElementById('ch-scan-area').style.display=isScan?'block':'none';
+  document.getElementById('ch-manual-area').style.display=isScan?'none':'block';
+  document.getElementById('ch-m-scan').className='mode-btn'+(isScan?' active':'');
+  document.getElementById('ch-m-manual').className='mode-btn'+(isScan?'':' active');
+  if(!isScan) renderCHManualList();
+}
+
+function renderCHManualList() {
+  const products=getAllProducts();
+  const container=document.getElementById('ch-manual-list');
+  if(!products.length){ container.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:10px;">Agrega tu primer producto abajo.</p>'; return; }
+  container.innerHTML=products.map((nombre,i)=>`
+    <div class="prod-fixed-row" id="ch-prow-${i}">
+      <div class="prod-fixed-name">${nombre}</div>
+      <input class="qty-in" type="number" min="0" value="0" id="ch-qty-${i}" onchange="highlightCHRow(${i})" style="width:55px;">
+      <span style="font-size:9px;color:var(--muted);">und</span>
+    </div>`).join('');
+  container.dataset.prods=JSON.stringify(products);
+}
+
+function highlightCHRow(i) {
+  const q=parseInt(document.getElementById('ch-qty-'+i)?.value)||0;
+  document.getElementById('ch-prow-'+i)?.classList.toggle('has-qty',q>0);
+}
+
+function addCHNewProd() {
+  const nombre=document.getElementById('ch-new-name').value.trim();
+  if(!nombre) return;
+  if(!productConfig[nombre]){ productConfig[nombre]=DEFAULT_UPB; saveConfig(); }
+  document.getElementById('ch-new-name').value='';
+  document.getElementById('ch-new-qty').value='0';
+  renderCHManualList();
+}
+
+function saveCHManual() {
+  let chofer=document.getElementById('ch-nombre').value.trim()||document.getElementById('ch-nombre-new').value.trim();
+  if(!chofer){ showStat('ch-status','error','❌ Selecciona o escribe el nombre del chofer'); return; }
+  const prods=JSON.parse(document.getElementById('ch-manual-list').dataset.prods||'[]');
+  const productos=[];
+  prods.forEach((nombre,i)=>{
+    const qty=parseInt(document.getElementById('ch-qty-'+i)?.value)||0;
+    if(qty>0){ productos.push({nombre,cantidad:qty,cajas:Math.floor(qty/upb(nombre)),sueltas:qty%upb(nombre)}); }
+  });
+  if(!productos.length){ alert('Agrega al menos un producto'); return; }
+  addToDespacho(chofer,productos);
+}
+
+function handleCHImg(e) {
+  const file=e.target.files[0]; if(!file) return;
+  chImg=file;
+  const r=new FileReader(); r.onload=ev=>{ document.getElementById('chPreview').src=ev.target.result; document.getElementById('chZone').classList.add('has-image'); document.getElementById('ch-analyze-btn').disabled=false; }; r.readAsDataURL(file);
+}
+function clearCHImg() {
+  chImg=null; document.getElementById('chPreview').src=''; document.getElementById('chZone').classList.remove('has-image'); document.getElementById('chFile').value=''; document.getElementById('ch-analyze-btn').disabled=true; document.getElementById('ch-result').style.display='none'; hideStat('ch-status');
+}
+
+async function analyzeCH() {
+  if(!chImg||!checkKey('ch-status')) return;
+  const chofer=document.getElementById('ch-nombre').value.trim()||document.getElementById('ch-nombre-new').value.trim();
+  if(!chofer){ showStat('ch-status','error','❌ Selecciona o escribe el nombre del chofer'); return; }
+  showLoader('ch-loader'); hideStat('ch-status'); document.getElementById('ch-analyze-btn').disabled=true; document.getElementById('chZone').classList.add('scanning');
+  try {
+    const b64=await toB64(chImg); const mt=chImg.type||'image/jpeg';
+    const prompt=`Eres un asistente que lee facturas de despacho de helados Polar/Bon en República Dominicana. Esta es una factura de despacho a un chofer con columnas: Cant / Descripción / Precio / Total. Extrae TODOS los productos con su cantidad (Cant). Responde SOLO JSON sin texto adicional ni backticks: {"productos":[{"nombre":"PALETA CHOCO MANI 32/1","cantidad":8}]}`;
+    const res=await callAPI([{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data:b64}},{type:'text',text:prompt}]}]);
+    const parsed=parseJ(res); if(!parsed?.productos) throw new Error('No se pudo leer la factura');
+    chResult={chofer,ficha:document.getElementById('ch-ficha').value.trim(),productos:parsed.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,cajas:Math.floor(p.cantidad/upb(p.nombre)),sueltas:p.cantidad%upb(p.nombre)}))};
+    renderCHResult(chResult);
+    showStat('ch-status','success',`✅ ${chResult.productos.length} productos — ${chofer}`);
+  } catch(err){ showStat('ch-status','error','❌ '+err.message); }
+  finally{ hideLoader('ch-loader'); document.getElementById('ch-analyze-btn').disabled=false; document.getElementById('chZone').classList.remove('scanning'); }
+}
+
+function renderCHResult(result) {
+  document.getElementById('ch-result-title').textContent=result.chofer;
+  document.getElementById('ch-count').textContent=result.productos.length+' items';
+  const tbody=document.getElementById('ch-result-body');
+  tbody.innerHTML=result.productos.map((p,i)=>`<tr>
+    <td class="pname">${p.nombre}</td>
+    <td><input class="qty-in" type="number" min="0" value="${p.cantidad}" id="chr-qty-${i}" onchange="recalcCH(${i})"></td>
+    <td><span class="badge bg" id="chr-cajas-${i}">${p.cajas}</span></td>
+    <td><span class="badge bo" id="chr-sueltas-${i}">${p.sueltas}</span></td>
+  </tr>`).join('');
+  document.getElementById('ch-result').style.display='block';
+}
+
+function recalcCH(i) {
+  const p=chResult.productos[i]; const qty=parseInt(document.getElementById('chr-qty-'+i).value)||0;
+  p.cantidad=qty; p.cajas=Math.floor(qty/upb(p.nombre)); p.sueltas=qty%upb(p.nombre);
+  document.getElementById('chr-cajas-'+i).textContent=p.cajas;
+  document.getElementById('chr-sueltas-'+i).textContent=p.sueltas;
+}
+
+function saveCH() {
+  chResult.productos.forEach((p,i)=>{ p.cantidad=parseInt(document.getElementById('chr-qty-'+i)?.value)||p.cantidad; const u=upb(p.nombre); p.cajas=Math.floor(p.cantidad/u); p.sueltas=p.cantidad%u; });
+  addToDespacho(chResult.chofer, chResult.productos);
+}
+
+function addToDespacho(chofer, productos) {
+  const entry={id:Date.now(),chofer,ficha:document.getElementById('ch-ficha').value.trim(),fecha:TODAY(),hora:new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}),productos};
+  despacho.push(entry);
+  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  saveDrvHistory(entry);
+  showStat('ch-status','success','✅ Agregado al despacho — '+chofer);
+  document.getElementById('ch-result').style.display='none';
+  clearCHImg();
+  document.getElementById('ch-nombre').value=''; document.getElementById('ch-nombre-new').value=''; document.getElementById('ch-ficha').value='';
+  document.getElementById('chofer-cs-label').textContent='— Elige o crea chofer —'; document.getElementById('chofer-cs-label').style.color='var(--muted)';
+  document.getElementById('new-chofer-box').classList.remove('vis');
+  renderDespachoSess();
+  renderMarkSection();
+}
+
+function saveDrvHistory(entry) {
+  const key='fs_drv_'+entry.chofer.replace(/\W/g,'_');
+  let dh=JSON.parse(localStorage.getItem(key)||'{"nombre":"","historial":[],"totales":{}}');
+  dh.nombre=entry.chofer; dh.historial.push(entry);
+  dh.totales={};
+  dh.historial.forEach(h=>h.productos.forEach(p=>{dh.totales[p.nombre]=(dh.totales[p.nombre]||0)+(p.cantidad||0);}));
+  localStorage.setItem(key,JSON.stringify(dh));
+  let dl=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  if(!dl.includes(entry.chofer)){ dl.push(entry.chofer); localStorage.setItem('fs_driver_list',JSON.stringify(dl)); }
+}
+
+function renderDespachoSess() {
+  const list=document.getElementById('ch-sess-list');
+  document.getElementById('ch-sess-count').textContent=despacho.length+' facturas';
+  if(!despacho.length){ list.innerHTML='<div class="empty"><div class="ei">📋</div><p>Aún no hay facturas.</p></div>'; return; }
+  list.innerHTML=despacho.map((e,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+      <div>
+        <div style="font-weight:700;font-size:13px;">${e.chofer} <span class="badge bo">${e.ficha||'S/F'}</span></div>
+        <div style="font-size:10px;color:var(--muted);">${e.fecha} ${e.hora} · ${e.productos.length} productos</div>
+      </div>
+      <button onclick="removeDesp(${i})" style="background:transparent;border:1px solid var(--red);color:var(--red);padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+function removeDesp(i) { despacho.splice(i,1); localStorage.setItem('fs_despacho',JSON.stringify(despacho)); renderDespachoSess(); renderMarkSection(); }
+function clearDespacho() { if(!confirm('¿Limpiar todo el despacho del día?')) return; despacho=[]; localStorage.setItem('fs_despacho',JSON.stringify(despacho)); renderDespachoSess(); renderMarkSection(); }
+
+// ── MARCAR DESPACHO ──
+function renderMarkSection() {
+  const sec=document.getElementById('mark-section');
+  if(!despacho.length){ sec.style.display='none'; return; }
+  sec.style.display='block';
+  // Aggregate all products
+  const allProds={};
+  despacho.forEach(e=>e.productos.forEach(p=>{ allProds[p.nombre]=(allProds[p.nombre]||0)+(p.cantidad||0); }));
+  const container=document.getElementById('mark-list');
+  container.innerHTML=Object.entries(allProds).map(([nombre,qty])=>{
+    const m=marks[nombre]||{ent:false,entQty:qty,ret:false,retQty:0};
+    return `<div class="mark-row">
+      <div class="mark-name">${nombre}<div style="font-size:10px;color:var(--muted);">Total: ${qty} und</div></div>
+      <div class="mark-box">
+        <div class="mark-label ent">ENTREGADO</div>
+        <div class="mark-check ent-check${m.ent?' checked':''}" onclick="toggleMark('${nombre}','ent')" id="mc-ent-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}">✓</div>
+        <input class="mark-qty" type="number" min="0" value="${m.entQty}" id="mq-ent-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}" onchange="updateMarkQty('${nombre}','ent',this.value)">
+      </div>
+      <div class="mark-box">
+        <div class="mark-label ret">RET/SUMA</div>
+        <div class="mark-check ret-check${m.ret?' checked':''}" onclick="toggleMark('${nombre}','ret')" id="mc-ret-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}">↩</div>
+        <input class="mark-qty" type="number" min="0" value="${m.retQty||0}" id="mq-ret-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}" onchange="updateMarkQty('${nombre}','ret',this.value)">
+      </div>
     </div>`;
   }).join('');
 }
 
-function updateManualItem(nombre, val) {
-  const qty = parseInt(val)||0;
-  const existing = manualItems.find(x=>x.nombre===nombre);
-  if(existing){ existing.cantidad=qty; }
-  else if(qty>0){ manualItems.push({nombre,cantidad:qty}); }
+function toggleMark(nombre,type) {
+  if(!marks[nombre]) marks[nombre]={ent:false,entQty:0,ret:false,retQty:0};
+  marks[nombre][type]=!marks[nombre][type];
+  renderMarkSection();
+}
+function updateMarkQty(nombre,type,val) {
+  if(!marks[nombre]) marks[nombre]={ent:false,entQty:0,ret:false,retQty:0};
+  marks[nombre][type+'Qty']=parseInt(val)||0;
+}
+function saveMarks() {
+  const today=TODAY();
+  if(!history[today]) history[today]={};
+  history[today].marks=marks;
+  saveHistory();
+  alert('✅ Marcas guardadas');
 }
 
-function addNewManualProduct() {
-  const nombre = document.getElementById('newProdName').value.trim();
-  const qty = parseInt(document.getElementById('newProdQty').value)||0;
-  if(!nombre) return;
-  const existing = manualItems.find(x=>x.nombre===nombre);
-  if(existing){ existing.cantidad+=qty; }
-  else{ manualItems.push({nombre,cantidad:qty}); }
-  document.getElementById('newProdName').value='';
-  document.getElementById('newProdQty').value='0';
-  renderManualList();
+// ════════════════════════════════════════════════════════
+// COMPARAR
+// ════════════════════════════════════════════════════════
+function showDatePicker() {
+  const picker=document.getElementById('cmp-date-picker');
+  picker.style.display=picker.style.display==='none'?'block':'none';
+  populateDateDD();
 }
 
-function saveManual() {
-  const chofer = document.getElementById('manualChofer').value.trim();
-  if(!chofer){ alert('Ingresa el nombre del chofer'); return; }
-  // Read current quantities from inputs
-  const products = getAllProducts();
-  const items = [];
-  products.forEach((nombre,i)=>{
-    const qty=parseInt(document.getElementById('mq_'+i)?.value)||0;
-    if(qty>0) items.push({nombre,cantidad:qty});
-  });
-  // Also include manually added items not in the list
-  manualItems.forEach(m=>{
-    if(!products.includes(m.nombre)&&m.cantidad>0) items.push(m);
-  });
-  if(items.length===0){ alert('Agrega al menos un producto'); return; }
-
-  const DEFAULT_UPB=20;
-  const config=JSON.parse(localStorage.getItem('fs_config')||'{}');
-  const productos=items.map(m=>{
-    const upb=config[m.nombre]||DEFAULT_UPB;
-    return {nombre:m.nombre,cantidad:m.cantidad,cajas:Math.floor(m.cantidad/upb),sueltas:m.cantidad%upb};
-  });
-
-  const entry={
-    id:Date.now(),chofer,
-    ficha:document.getElementById('manualFicha').value.trim(),
-    fecha:new Date().toLocaleDateString('es-DO'),
-    hora:new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}),
-    productos
-  };
-  const session=JSON.parse(localStorage.getItem('fs_session')||'[]');
-  session.push(entry);
-  localStorage.setItem('fs_session',JSON.stringify(session));
-
-  // Save driver history
-  const dkey='fs_driver_'+chofer.replace(/\s+/g,'_');
-  let dh=JSON.parse(localStorage.getItem(dkey)||'{"nombre":"","historial":[],"totales":{}}');
-  dh.nombre=chofer; dh.historial.push(entry);
-  dh.totales={};
-  dh.historial.forEach(h=>h.productos.forEach(p=>{dh.totales[p.nombre]=(dh.totales[p.nombre]||0)+p.cantidad;}));
-  localStorage.setItem(dkey,JSON.stringify(dh));
-  let dlist=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
-  if(!dlist.includes(chofer)){dlist.push(chofer);localStorage.setItem('fs_driver_list',JSON.stringify(dlist));}
-
-  alert('✅ Agregado — '+chofer);
-  manualItems=[];
-  document.getElementById('manualChofer').value='';
-  document.getElementById('manualFicha').value='';
-  renderManualList();
-}
-
-// ════════════════════════════════════
-// COMPARE
-// ════════════════════════════════════
-function runCompare() {
-  const session = JSON.parse(localStorage.getItem('fs_session')||'[]');
-  if(session.length===0){ alert('No hay facturas en la sesión para comparar'); return; }
-
-  // Build CF totals from session entries that have CF flag, or use all
-  // For now: CF = first entry marked as CF, Choferes = rest
-  // Actually: aggregate all session products as "despachado"
-  const despachoCounts={};
-  session.forEach(e=>{
-    e.productos.forEach(p=>{
-      despachoCounts[p.nombre]=(despachoCounts[p.nombre]||0)+(p.cantidad||0);
-    });
-  });
-
-  // CF data from localStorage if saved
-  const today=new Date().toISOString().split('T')[0];
-  const hist=JSON.parse(localStorage.getItem('fs_history')||'{}');
-  const cfData=hist[today]?.cf;
-
-  if(!cfData){ 
-    // Show compare with just session totals
-    showCompareResult({}, despachoCounts);
-    return;
+function runCompare(mode) {
+  let cfData=null, despData=[];
+  if(mode==='actual') {
+    const today=TODAY();
+    cfData=history[today]?.cf;
+    despData=despacho;
+    if(!cfData&&!despData.length){ showStat('cmp-status','warn','⚠️ No hay datos del día para comparar'); return; }
+  } else {
+    const date=document.getElementById('cmp-date-val').value;
+    if(!date){ showStat('cmp-status','error','❌ Elige una fecha'); return; }
+    cfData=history[date]?.cf;
+    despData=history[date]?.despacho||[];
+    if(!cfData){ showStat('cmp-status','warn','⚠️ No hay lista del C.Frío para esa fecha'); return; }
   }
 
   const cfCounts={};
-  cfData.productos.forEach(p=>{ cfCounts[p.nombre]=p.total||p.cantidad||0; });
-  showCompareResult(cfCounts, despachoCounts);
-}
+  if(cfData) cfData.productos.forEach(p=>{ cfCounts[p.nombre]=p.total||0; });
 
-function showCompareResult(cfCounts, despachoCounts) {
-  const allProducts=new Set([...Object.keys(cfCounts),...Object.keys(despachoCounts)]);
+  const despCounts={};
+  despData.forEach(e=>e.productos.forEach(p=>{ despCounts[p.nombre]=(despCounts[p.nombre]||0)+(p.cantidad||0); }));
+
+  const all=new Set([...Object.keys(cfCounts),...Object.keys(despCounts)]);
   let ok=0,over=0,under=0;
   const rows=[];
-
-  allProducts.forEach(nombre=>{
-    const cf=cfCounts[nombre]||0;
-    const desp=despachoCounts[nombre]||0;
-    const diff=cf-desp;
-    if(diff===0) ok++;
-    else if(diff>0) over++;
-    else under++;
+  all.forEach(nombre=>{
+    const cf=cfCounts[nombre]||0; const desp=despCounts[nombre]||0; const diff=cf-desp;
+    if(diff===0) ok++; else if(diff>0) over++; else under++;
     rows.push({nombre,cf,desp,diff});
   });
+  rows.sort((a,b)=>a.diff-b.diff);
 
   document.getElementById('cmp-ok').textContent=ok;
   document.getElementById('cmp-over').textContent=over;
   document.getElementById('cmp-under').textContent=under;
   document.getElementById('cmp-summary').style.display='block';
 
-  // Sort: faltantes first, then sobrantes, then cuadrados
-  rows.sort((a,b)=>a.diff-b.diff);
-
   document.getElementById('cmp-detail').innerHTML=rows.map(r=>{
-    let bg,border,icon,diffLabel,diffColor;
-    if(r.diff===0){
-      bg='rgba(0,255,136,0.04)';border='rgba(0,255,136,0.15)';
-      icon='✅';diffLabel='CUADRA';diffColor='var(--green)';
-    } else if(r.diff>0){
-      bg='rgba(255,214,0,0.04)';border='rgba(255,214,0,0.2)';
-      icon='⚠️';diffLabel='+'+r.diff+' SOBRA';diffColor='#ffd600';
-    } else {
-      bg='rgba(255,51,85,0.06)';border='rgba(255,51,85,0.25)';
-      icon='❌';diffLabel=Math.abs(r.diff)+' FALTA';diffColor='var(--red)';
-    }
-    return `<div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
-      <div style="font-size:20px;">${icon}</div>
+    let cls,icon,dlbl,dclr;
+    if(r.diff===0){cls='ok';icon='✅';dlbl='CUADRA';dclr='var(--green)';}
+    else if(r.diff>0){cls='over';icon='⚠️';dlbl='+'+r.diff+' SOBRA';dclr='var(--yellow)';}
+    else{cls='under';icon='❌';dlbl=Math.abs(r.diff)+' FALTA';dclr='var(--red)';}
+    return `<div class="cmp-card ${cls}">
+      <div class="cmp-icon">${icon}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:700;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.nombre}</div>
-        <div style="display:flex;gap:14px;margin-top:5px;font-family:'Share Tech Mono',monospace;font-size:11px;">
+        <div class="cmp-name">${r.nombre}</div>
+        <div class="cmp-nums">
           <span style="color:var(--cyan);">C.Frío: <b>${r.cf}</b></span>
           <span style="color:var(--orange);">Choferes: <b>${r.desp}</b></span>
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${diffColor};">${Math.abs(r.diff)||'—'}</div>
-        <div style="font-size:9px;color:${diffColor};letter-spacing:1px;font-weight:700;">${diffLabel}</div>
+        <div class="cmp-diff-num" style="color:${dclr};">${Math.abs(r.diff)||'✓'}</div>
+        <div class="cmp-diff-lbl" style="color:${dclr};">${dlbl}</div>
       </div>
     </div>`;
   }).join('');
+  hideStat('cmp-status');
 }
-</script>
 
+// ════════════════════════════════════════════════════════
+// HISTORIAL
+// ════════════════════════════════════════════════════════
+function showHist(view) {
+  histView=view;
+  document.querySelectorAll('#page-historial .btn-sm').forEach((b,i)=>{
+    b.className='btn btn-sec btn-sm'; b.style.flex='1'; b.style.minWidth='70px';
+  });
+  const map={dias:0,choferes:1,semanal:2,mensual:3,anual:4};
+  const btns=document.querySelectorAll('#page-historial .btn-sm');
+  if(btns[map[view]]){ btns[map[view]].className='btn btn-primary btn-sm'; btns[map[view]].style.flex='1'; btns[map[view]].style.minWidth='70px'; }
+  const content=document.getElementById('hist-content');
+  if(view==='dias') renderHistDias(content);
+  else if(view==='choferes') renderHistChoferes(content);
+  else renderHistPeriod(view,content);
+}
+
+function renderHistDias(el) {
+  const dates=Object.keys(history).sort().reverse();
+  if(!dates.length){ el.innerHTML='<div class="empty"><div class="ei">📅</div><p>No hay datos guardados.</p></div>'; return; }
+  el.innerHTML=dates.map(d=>{
+    const cfCount=history[d].cf?.productos.length||0;
+    const despCount=history[d].despacho?.length||0;
+    return `<div class="hist-card" onclick="showDayDetail('${d}')">
+      <div class="hist-date">${d}</div>
+      <div class="hist-meta">🏭 C.Frío: ${cfCount} productos · 🚚 ${despCount} facturas</div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistChoferes(el) {
+  const dl=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  // Use admin-fixed order if available
+  const order=JSON.parse(localStorage.getItem('fs_driver_order')||'[]');
+  const sorted=order.length?order.filter(n=>dl.includes(n)).concat(dl.filter(n=>!order.includes(n))):dl;
+  if(!sorted.length){ el.innerHTML='<div class="empty"><div class="ei">🚚</div><p>No hay choferes registrados.</p></div>'; return; }
+  el.innerHTML=sorted.map(nombre=>{
+    const dh=JSON.parse(localStorage.getItem('fs_drv_'+nombre.replace(/\W/g,'_'))||'{"historial":[]}');
+    return `<div class="driver-card" onclick="showDriverDetail('${nombre}')">
+      <div class="driver-name">${nombre}</div>
+      <div class="driver-meta">📋 ${dh.historial.length} facturas en historial</div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistPeriod(view, el) {
+  const groups={};
+  Object.keys(history).forEach(date=>{
+    let key;
+    if(view==='semanal'){ const d=new Date(date); const ws=new Date(d); ws.setDate(d.getDate()-d.getDay()); key=ws.toISOString().split('T')[0]; }
+    else if(view==='mensual') key=date.substring(0,7);
+    else key=date.substring(0,4);
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(date);
+  });
+  if(!Object.keys(groups).length){ el.innerHTML='<div class="empty"><div class="ei">📊</div><p>No hay datos.</p></div>'; return; }
+  el.innerHTML=Object.keys(groups).sort().reverse().map(key=>{
+    const dates=groups[key];
+    let total=0;
+    dates.forEach(d=>{ const desp=history[d]?.despacho||[]; desp.forEach(e=>e.productos.forEach(p=>total+=(p.cantidad||0))); });
+    const label=view==='semanal'?'SEMANA '+key:view==='mensual'?key:key+' (AÑO)';
+    return `<div class="hist-card" onclick="showPeriodDetail('${view}','${key}')">
+      <div class="hist-date">${label}</div>
+      <div class="hist-meta">${dates.length} días · ${total} unidades totales despachadas</div>
+    </div>`;
+  }).join('');
+}
+
+function showDayDetail(date) {
+  const d=history[date]; let html='';
+  if(d.cf){
+    html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--cyan);margin-bottom:8px;letter-spacing:2px;">🏭 CUARTO FRÍO</div>`;
+    html+=`<div class="tbl-wrap" style="margin-bottom:14px;"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th></tr></thead><tbody>`;
+    html+=d.cf.productos.map(p=>`<tr><td class="pname">${p.nombre}</td><td>${p.cajas||0}</td><td>${p.unidades||0}</td><td style="font-family:'Share Tech Mono',monospace;color:var(--green);">${p.total}</td></tr>`).join('');
+    html+=`</tbody></table></div>`;
+  }
+  if(d.despacho?.length){
+    html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--orange);margin-bottom:8px;letter-spacing:2px;">🚚 DESPACHO</div>`;
+    d.despacho.forEach(e=>{
+      html+=`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><div style="font-weight:700;font-size:13px;">${e.chofer} <span class="badge bo">${e.ficha||'S/F'}</span></div><div style="font-size:10px;color:var(--muted);margin-top:3px;">${e.productos.map(p=>p.nombre+' ×'+p.cantidad).join(' · ')}</div></div>`;
+    });
+  }
+  document.getElementById('day-title').textContent=date;
+  document.getElementById('day-content').innerHTML=html||'<p style="color:var(--muted);">Sin datos.</p>';
+  document.getElementById('dayModal').classList.add('active');
+}
+
+function showDriverDetail(nombre) {
+  const dh=JSON.parse(localStorage.getItem('fs_drv_'+nombre.replace(/\W/g,'_'))||'{"historial":[],"totales":{}}');
+  let html='';
+  if(Object.keys(dh.totales||{}).length){
+    html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--cyan);margin-bottom:8px;letter-spacing:2px;">TOTAL ACUMULADO</div>`;
+    html+=`<div class="tbl-wrap" style="margin-bottom:14px;"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th><th>SUELTAS</th></tr></thead><tbody>`;
+    html+=Object.entries(dh.totales).map(([n,v])=>`<tr><td class="pname">${n}</td><td style="font-family:'Share Tech Mono',monospace;">${v}</td><td><span class="badge bg">${Math.floor(v/upb(n))}</span></td><td><span class="badge bo">${v%upb(n)}</span></td></tr>`).join('');
+    html+=`</tbody></table></div>`;
+  }
+  html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--orange);margin-bottom:8px;letter-spacing:2px;">HISTORIAL (${dh.historial.length})</div>`;
+  [...dh.historial].reverse().forEach(h=>{
+    html+=`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><div style="font-size:12px;font-weight:700;">${h.fecha} ${h.hora} <span class="badge bo">${h.ficha||'S/F'}</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${h.productos.map(p=>p.nombre+' ×'+p.cantidad).join(' · ')}</div></div>`;
+  });
+  document.getElementById('dm-title').textContent=nombre;
+  document.getElementById('dm-content').innerHTML=html;
+  document.getElementById('driverModal').classList.add('active');
+}
+
+function showPeriodDetail(view,key) {
+  let dates=[];
+  if(view==='semanal') dates=Object.keys(history).filter(d=>{ const dt=new Date(d); const ws=new Date(dt); ws.setDate(dt.getDate()-dt.getDay()); return ws.toISOString().split('T')[0]===key; });
+  else if(view==='mensual') dates=Object.keys(history).filter(d=>d.startsWith(key));
+  else dates=Object.keys(history).filter(d=>d.startsWith(key));
+  const choferData={};
+  dates.forEach(date=>{ const d=history[date]; if(d.despacho) d.despacho.forEach(e=>{ if(!choferData[e.chofer]) choferData[e.chofer]={totales:{},facturas:0}; choferData[e.chofer].facturas++; e.productos.forEach(p=>{ choferData[e.chofer].totales[p.nombre]=(choferData[e.chofer].totales[p.nombre]||0)+(p.cantidad||0); }); }); });
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${dates.length} días incluidos</div>`;
+  Object.entries(choferData).forEach(([chofer,data])=>{
+    const total=Object.values(data.totales).reduce((a,b)=>a+b,0);
+    html+=`<div style="margin-bottom:14px;"><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--cyan);letter-spacing:2px;">${chofer}</div><div style="font-size:10px;color:var(--muted);margin-bottom:6px;">${data.facturas} facturas · ${total} unidades totales</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th></tr></thead><tbody>${Object.entries(data.totales).map(([n,v])=>`<tr><td class="pname">${n}</td><td style="font-family:'Share Tech Mono',monospace;">${v}</td><td><span class="badge bg">${Math.floor(v/upb(n))}</span></td></tr>`).join('')}</tbody></table></div></div>`;
+  });
+  document.getElementById('day-title').textContent=key;
+  document.getElementById('day-content').innerHTML=html||'<p style="color:var(--muted);">Sin datos.</p>';
+  document.getElementById('dayModal').classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════
+// ADMIN
+// ════════════════════════════════════════════════════════
+function openAdmin() {
+  document.getElementById('admin-auth').style.display='block';
+  document.getElementById('admin-panel').style.display='none';
+  document.getElementById('admin-pass').value='';
+  document.getElementById('adminModal').classList.add('active');
+}
+function verifyAdmin() {
+  if(document.getElementById('admin-pass').value===PASS){
+    document.getElementById('admin-auth').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    document.getElementById('admin-apikey').value=apiKey;
+    renderAdminProducts(); renderAdminOrder();
+  } else { document.getElementById('admin-pass').style.borderColor='var(--red)'; setTimeout(()=>document.getElementById('admin-pass').style.borderColor='',800); }
+}
+function requireAdmin(cb) { adminCallback=cb; document.getElementById('adminCb-pass').value=''; document.getElementById('adminCbModal').classList.add('active'); }
+function verifyCbAdmin() { if(document.getElementById('adminCb-pass').value===PASS){ closeModal('adminCbModal'); if(adminCallback) adminCallback(); adminCallback=null; } else { document.getElementById('adminCb-pass').style.borderColor='var(--red)'; setTimeout(()=>document.getElementById('adminCb-pass').style.borderColor='',800); } }
+function saveApiKey() { apiKey=document.getElementById('admin-apikey').value.trim(); localStorage.setItem('fs_apikey',apiKey); alert('✅ API Key guardada'); }
+
+function renderAdminProducts() {
+  const all=getAllProducts();
+  const el=document.getElementById('admin-products');
+  if(!all.length){ el.innerHTML='<p style="font-size:11px;color:var(--muted);">Analiza facturas primero.</p>'; return; }
+  el.innerHTML=all.map(n=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+    <div style="flex:1;font-size:11px;font-weight:700;">${n}</div>
+    <input style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;width:52px;text-align:center;" type="number" min="1" value="${productConfig[n]||DEFAULT_UPB}" data-p="${n}">
+    <span style="font-size:10px;color:var(--muted);">u/caja</span>
+  </div>`).join('');
+}
+
+function saveProductConfig() {
+  document.querySelectorAll('[data-p]').forEach(inp=>{ productConfig[inp.dataset.p]=parseInt(inp.value)||DEFAULT_UPB; });
+  saveConfig(); alert('✅ Configuración guardada'); closeModal('adminModal');
+}
+
+let dragIdx=null;
+function renderAdminOrder() {
+  const dl=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  const order=JSON.parse(localStorage.getItem('fs_driver_order')||'[]');
+  const sorted=order.length?order.filter(n=>dl.includes(n)).concat(dl.filter(n=>!order.includes(n))):dl;
+  const el=document.getElementById('admin-chofer-order');
+  if(!sorted.length){ el.innerHTML='<p style="font-size:11px;color:var(--muted);">No hay choferes registrados.</p>'; return; }
+  el.innerHTML=sorted.map((n,i)=>`<div draggable="true" ondragstart="dragIdx=${i}" ondragover="event.preventDefault()" ondrop="dropOrder(event,${i},'${n}')" style="display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;cursor:grab;">
+    <span style="color:var(--muted);font-size:14px;">☰</span>
+    <span style="font-size:13px;font-weight:700;flex:1;">${n}</span>
+    <span class="badge bc">#${i+1}</span>
+  </div>`).join('');
+  el.dataset.sorted=JSON.stringify(sorted);
+}
+
+function dropOrder(e,targetIdx,targetName) {
+  e.preventDefault();
+  if(dragIdx===null||dragIdx===targetIdx) return;
+  const sorted=JSON.parse(document.getElementById('admin-chofer-order').dataset.sorted||'[]');
+  const item=sorted.splice(dragIdx,1)[0];
+  sorted.splice(targetIdx,0,item);
+  localStorage.setItem('fs_driver_order',JSON.stringify(sorted));
+  dragIdx=null; renderAdminOrder();
+}
+function saveChoferOrder() { alert('✅ Orden guardado'); closeModal('adminModal'); }
+function clearAllData() { if(!confirm('⚠️ ¿Borrar TODOS los datos?')) return; localStorage.clear(); location.reload(); }
+
+// ════════════════════════════════════════════════════════
+// DROPDOWNS
+// ════════════════════════════════════════════════════════
+function toggleCS(id) {
+  const cs=document.getElementById(id); const btn=cs.querySelector('.cs-btn'); const dd=cs.querySelector('.cs-dd');
+  const isOpen=dd.classList.contains('open');
+  document.querySelectorAll('.cs-dd.open').forEach(d=>{ d.classList.remove('open'); d.previousElementSibling?.classList.remove('open'); });
+  if(!isOpen){ dd.classList.add('open'); btn.classList.add('open'); }
+}
+
+function populateChoferDD() {
+  const dl=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  const order=JSON.parse(localStorage.getItem('fs_driver_order')||'[]');
+  const sorted=order.length?order.filter(n=>dl.includes(n)).concat(dl.filter(n=>!order.includes(n))):dl;
+  const dd=document.getElementById('chofer-cs-dd'); if(!dd) return;
+  dd.innerHTML='';
+  const newOpt=document.createElement('div'); newOpt.className='cs-opt new-o'; newOpt.textContent='➕ Nuevo chofer...';
+  newOpt.addEventListener('click',()=>selectChofer('__new__')); dd.appendChild(newOpt);
+  sorted.forEach(nombre=>{ const o=document.createElement('div'); o.className='cs-opt'; o.textContent=nombre; o.addEventListener('click',()=>selectChofer(nombre)); dd.appendChild(o); });
+}
+
+function selectChofer(nombre) {
+  const isNew=nombre==='__new__';
+  document.getElementById('ch-nombre').value=isNew?'':nombre;
+  document.getElementById('chofer-cs-label').textContent=isNew?'➕ Nuevo chofer...':nombre;
+  document.getElementById('chofer-cs-label').style.color=isNew?'var(--green)':'var(--cyan)';
+  document.getElementById('new-chofer-box').classList.toggle('vis',isNew);
+  document.getElementById('chofer-cs-dd').classList.remove('open');
+  document.getElementById('chofer-cs').querySelector('.cs-btn').classList.remove('open');
+}
+
+function populateDateDD() {
+  const dates=Object.keys(history).sort().reverse();
+  const dd=document.getElementById('date-cs-dd'); if(!dd) return;
+  dd.innerHTML=dates.length?dates.map(d=>`<div class="cs-opt" onclick="selectDate('${d}')">${d}</div>`).join(''):'<div class="cs-opt" style="color:var(--muted);">Sin fechas guardadas</div>';
+}
+
+function selectDate(date) {
+  document.getElementById('cmp-date-val').value=date;
+  document.getElementById('date-cs-label').textContent=date;
+  document.getElementById('date-cs-label').style.color='var(--cyan)';
+  document.getElementById('date-cs-dd').classList.remove('open');
+  document.getElementById('date-cs').querySelector('.cs-btn').classList.remove('open');
+}
+
+document.addEventListener('click',e=>{ if(!e.target.closest('.cs')) document.querySelectorAll('.cs-dd.open').forEach(d=>{ d.classList.remove('open'); d.previousElementSibling?.classList.remove('open'); }); });
+
+// ════════════════════════════════════════════════════════
+// API — GEMINI
+// ════════════════════════════════════════════════════════
+async function callAPI(messages) {
+  const key=apiKey||localStorage.getItem('fs_apikey')||'';
+  const parts=[];
+  for(const msg of messages){ if(Array.isArray(msg.content)){ for(const c of msg.content){ if(c.type==='text') parts.push({text:c.text}); else if(c.type==='image') parts.push({inlineData:{mimeType:c.source.media_type,data:c.source.data}}); } } else parts.push({text:msg.content}); }
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts}]})});
+  if(!res.ok){ const e=await res.json(); throw new Error(e.error?.message||'Error API '+res.status); }
+  const data=await res.json();
+  return data.candidates[0].content.parts[0].text.trim();
+}
+
+function checkKey(sid) { const k=apiKey||localStorage.getItem('fs_apikey')||''; if(!k){ showStat(sid,'error','❌ Configura tu Gemini API Key en ADMIN'); return false; } return true; }
+function parseJ(text) { try{return JSON.parse(text);}catch{const m=text.match(/\{[\s\S]*\}/);if(m)try{return JSON.parse(m[0]);}catch{}} return null; }
+function toB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function showStat(id,type,msg){const el=document.getElementById(id);if(!el)return;el.className='sbar show '+type;el.innerHTML=`<div class="sdot"></div><div class="stxt">${msg}</div>`;}
+function hideStat(id){const el=document.getElementById(id);if(el)el.className='sbar';}
+function showLoader(id){document.getElementById(id)?.classList.add('active');}
+function hideLoader(id){document.getElementById(id)?.classList.remove('active');}
+function closeModal(id){document.getElementById(id)?.classList.remove('active');}
+function saveHistory(){localStorage.setItem('fs_history',JSON.stringify(history));}
+function saveConfig(){localStorage.setItem('fs_config',JSON.stringify(productConfig));}
+
+document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('active');}));
+
+// INIT
+initCFPage();
+renderDespachoSess();
+renderMarkSection();
+</script>
 </body>
 </html>
