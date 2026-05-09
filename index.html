@@ -263,6 +263,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="logo-sub">POLAR BREEZE · SISTEMA DE DESPACHO</div>
   </div>
   <div class="hdr-btns">
+    <div id="fb-dot" title="Firebase: conectando..." style="width:9px;height:9px;border-radius:50%;background:var(--orange);flex-shrink:0;align-self:center;box-shadow:0 0 6px var(--orange);transition:all .4s;"></div>
     <button class="hbtn" id="theme-btn" onclick="toggleTheme()">🌙</button>
     <button class="hbtn admin" onclick="openAdmin()">⚙ ADMIN</button>
   </div>
@@ -644,6 +645,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 // ════════════════════════════════════════════════════════
 // STATE
@@ -666,6 +669,107 @@ let marks = {}; // {prodName: {ent:bool, entQty:num, suma:num, resta:num}}
 let histUnlocked = false;
 let waNumber = localStorage.getItem('fs_wa_number') || '';
 let currentDayDetail = null;
+
+// ════════════════════════════════════════════════════════
+// FIREBASE
+// ════════════════════════════════════════════════════════
+firebase.initializeApp({
+  apiKey:"AIzaSyDff-CX-65-ruH8YIUeJ08dE0B6Ad8AcCk",
+  authDomain:"polar-breeze.firebaseapp.com",
+  projectId:"polar-breeze",
+  storageBucket:"polar-breeze.firebasestorage.app",
+  messagingSenderId:"318761541153",
+  appId:"1:318761541153:web:3537c3f89767084ab30d60"
+});
+const db = firebase.firestore();
+let fbOnline = false;
+
+function setFBStatus(s) {
+  fbOnline = s==='ok';
+  const el=document.getElementById('fb-dot'); if(!el) return;
+  const c={ok:'var(--green)',connecting:'var(--orange)',error:'var(--red)'};
+  el.style.background=c[s]||c.error; el.style.boxShadow='0 0 6px '+(c[s]||c.error);
+  el.title=s==='ok'?'🔥 Firebase OK':s==='connecting'?'🔄 Conectando...':'⚠️ Sin conexión';
+}
+
+// ── Guardar en Firebase ──
+async function fbSaveHistory(date){
+  if(!fbOnline||!history[date]) return;
+  try{ await db.collection('history').doc(date).set(history[date],{merge:true}); }
+  catch(e){ console.warn('fbSaveHistory',e); }
+}
+async function fbSaveDespachoFB(){
+  if(!fbOnline) return;
+  try{ await db.collection('session').doc('despacho').set({entries:despacho,updated:Date.now()}); }
+  catch(e){ console.warn('fbSaveDespacho',e); }
+}
+async function fbSaveDriver(normKey, data){
+  if(!fbOnline) return;
+  try{ await db.collection('drivers').doc(normKey).set(data); }
+  catch(e){ console.warn('fbSaveDriver',e); }
+}
+let _fbCfgTimer=null;
+async function fbSaveConfigFB(){
+  if(!fbOnline) return;
+  clearTimeout(_fbCfgTimer);
+  _fbCfgTimer=setTimeout(async()=>{
+    try{ await db.collection('config').doc('main').set({
+      productConfig,priceConfig,
+      product_order:JSON.parse(localStorage.getItem('fs_product_order')||'[]'),
+      driver_order:JSON.parse(localStorage.getItem('fs_driver_order')||'[]'),
+      driver_list:JSON.parse(localStorage.getItem('fs_driver_list')||'[]')
+    }); }
+    catch(e){ console.warn('fbSaveConfig',e); }
+  },1500);
+}
+
+// ── Cargar desde Firebase al inicio ──
+async function fbLoadAll(){
+  setFBStatus('connecting');
+  try{
+    // Config
+    const cfg=await db.collection('config').doc('main').get();
+    if(cfg.exists){
+      const d=cfg.data();
+      if(d.productConfig){ productConfig={...d.productConfig,...productConfig}; localStorage.setItem('fs_config',JSON.stringify(productConfig)); }
+      if(d.priceConfig){ priceConfig={...d.priceConfig,...priceConfig}; localStorage.setItem('fs_prices',JSON.stringify(priceConfig)); }
+      if(d.product_order?.length&&!localStorage.getItem('fs_product_order')) localStorage.setItem('fs_product_order',JSON.stringify(d.product_order));
+      if(d.driver_order?.length&&!localStorage.getItem('fs_driver_order')) localStorage.setItem('fs_driver_order',JSON.stringify(d.driver_order));
+      if(d.driver_list?.length){
+        const local=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+        localStorage.setItem('fs_driver_list',JSON.stringify([...new Set([...local,...d.driver_list])]));
+      }
+    }
+    // History
+    const hSnap=await db.collection('history').get();
+    hSnap.forEach(doc=>{ if(!history[doc.id]) history[doc.id]=doc.data(); });
+    localStorage.setItem('fs_history',JSON.stringify(history));
+    // Drivers
+    const dSnap=await db.collection('drivers').get();
+    dSnap.forEach(doc=>{
+      const k='fs_drv_'+doc.id;
+      if(!localStorage.getItem(k)){
+        localStorage.setItem(k,JSON.stringify(doc.data()));
+        const n=doc.data().nombre;
+        if(n){ let dl=JSON.parse(localStorage.getItem('fs_driver_list')||'[]'); if(!dl.includes(n)){ dl.push(n); localStorage.setItem('fs_driver_list',JSON.stringify(dl)); } }
+      }
+    });
+    setFBStatus('ok');
+    return true;
+  }catch(e){ console.warn('fbLoadAll:',e); setFBStatus('error'); return false; }
+}
+
+// ── Listener en tiempo real para despacho ──
+function fbListenDespacho(){
+  db.collection('session').doc('despacho').onSnapshot(snap=>{
+    if(!snap.exists) return;
+    const fb=snap.data().entries||[];
+    if(JSON.stringify(fb)===JSON.stringify(despacho)) return;
+    despacho=fb;
+    saveDespacho();
+    renderDespachoSess(); renderMarkSection();
+  },err=>console.warn('fbListenDespacho:',err));
+}
 
 // ════════════════════════════════════════════════════════
 // THEME
@@ -766,10 +870,10 @@ function resetCF() {
   }
   // Clear CF and despacho for today
   if(history[today]) delete history[today].cf;
-  saveHistory();
+  saveHistory(today);
   // Clear despacho session
   despacho=[];
-  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  saveDespacho();
   marks={};
   clearCFImg();
   renderDespachoSess();
@@ -831,7 +935,7 @@ function saveCFManual() {
   if(!history[today]) history[today]={};
   const _tCF=cfTotals(productos);
   history[today].cf={fecha:today,productos,totalUnidades:_tCF.und,totalRD:_tCF.rd};
-  saveHistory();
+  saveHistory(today);
   showStat('cf-status','success',`✅ Lista guardada — ${_tCF.und} und · ${fmtRD(_tCF.rd)}`);
   setTimeout(()=>initCFPage(),1000);
 }
@@ -886,7 +990,7 @@ function saveCF() {
   if(!history[today]) history[today]={};
   const _tCF2=cfTotals(cfResult.productos);
   history[today].cf={fecha:today,productos:cfResult.productos,totalUnidades:_tCF2.und,totalRD:_tCF2.rd};
-  saveHistory();
+  saveHistory(today);
   showStat('cf-status','success',`✅ Lista guardada — ${_tCF2.und} und · ${fmtRD(_tCF2.rd)}`);
   setTimeout(()=>initCFPage(),1000);
 }
@@ -1026,7 +1130,7 @@ function saveCH() {
 function addToDespacho(chofer, productos) {
   const entry={id:Date.now(),chofer,ficha:document.getElementById('ch-ficha').value.trim(),fecha:TODAY(),hora:new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}),productos};
   despacho.push(entry);
-  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  saveDespacho();
   saveDrvHistory(entry);
   showStat('ch-status','success','✅ Agregado al despacho — '+chofer);
   document.getElementById('ch-result').style.display='none';
@@ -1045,8 +1149,9 @@ function saveDrvHistory(entry) {
   dh.totales={};
   dh.historial.forEach(h=>h.productos.forEach(p=>{dh.totales[p.nombre]=(dh.totales[p.nombre]||0)+(p.cantidad||0);}));
   localStorage.setItem(key,JSON.stringify(dh));
+  fbSaveDriver(entry.chofer.replace(/\W/g,'_'), dh);
   let dl=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
-  if(!dl.includes(entry.chofer)){ dl.push(entry.chofer); localStorage.setItem('fs_driver_list',JSON.stringify(dl)); }
+  if(!dl.includes(entry.chofer)){ dl.push(entry.chofer); localStorage.setItem('fs_driver_list',JSON.stringify(dl)); fbSaveConfigFB(); }
 }
 
 function renderDespachoSess() {
@@ -1073,8 +1178,8 @@ function renderDespachoSess() {
   list.innerHTML=rows+total;
 }
 
-function removeDesp(i) { despacho.splice(i,1); localStorage.setItem('fs_despacho',JSON.stringify(despacho)); renderDespachoSess(); renderMarkSection(); }
-function clearDespacho() { if(!confirm('¿Limpiar todo el despacho del día?')) return; despacho=[]; localStorage.setItem('fs_despacho',JSON.stringify(despacho)); renderDespachoSess(); renderMarkSection(); }
+function removeDesp(i) { despacho.splice(i,1); saveDespacho(); renderDespachoSess(); renderMarkSection(); }
+function clearDespacho() { if(!confirm('¿Limpiar todo el despacho del día?')) return; despacho=[]; saveDespacho(); renderDespachoSess(); renderMarkSection(); }
 
 // ── MARCAR DESPACHO ──
 function renderMarkSection() {
@@ -1154,7 +1259,7 @@ function saveMarks() {
   const today=TODAY();
   if(!history[today]) history[today]={};
   history[today].marks=marks;
-  saveHistory();
+  saveHistory(today);
   alert('✅ Marcas guardadas');
 }
 
@@ -1502,6 +1607,7 @@ function dropProdOrder(e, targetIdx) {
 function saveProductOrder() {
   const prods = JSON.parse(document.getElementById('admin-product-order').dataset.prods||'[]');
   localStorage.setItem('fs_product_order', JSON.stringify(prods));
+  fbSaveConfigFB();
   alert('✅ Orden de productos guardado');
 }
 
@@ -1529,7 +1635,7 @@ function dropOrder(e,targetIdx,targetName) {
   localStorage.setItem('fs_driver_order',JSON.stringify(sorted));
   dragIdx=null; renderAdminOrder();
 }
-function saveChoferOrder() { alert('✅ Orden guardado'); closeModal('adminModal'); }
+function saveChoferOrder() { fbSaveConfigFB(); alert('✅ Orden guardado'); closeModal('adminModal'); }
 function clearAllData() { if(!confirm('⚠️ ¿Borrar TODOS los datos?')) return; localStorage.clear(); location.reload(); }
 
 // ════════════════════════════════════════════════════════
@@ -1596,8 +1702,9 @@ function hideStat(id){const el=document.getElementById(id);if(el)el.className='s
 function showLoader(id){document.getElementById(id)?.classList.add('active');}
 function hideLoader(id){document.getElementById(id)?.classList.remove('active');}
 function closeModal(id){document.getElementById(id)?.classList.remove('active');}
-function saveHistory(){localStorage.setItem('fs_history',JSON.stringify(history));}
-function saveConfig(){localStorage.setItem('fs_config',JSON.stringify(productConfig));}
+function saveHistory(date){localStorage.setItem('fs_history',JSON.stringify(history)); if(date) fbSaveHistory(date);}
+function saveConfig(){localStorage.setItem('fs_config',JSON.stringify(productConfig)); fbSaveConfigFB();}
+function saveDespacho(){saveDespacho(); fbSaveDespachoFB();}
 
 document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('active');}));
 
@@ -1804,7 +1911,7 @@ function saveChoferEditList() {
   const entry = {id:Date.now(),chofer,ficha:document.getElementById('ch-ficha').value.trim(),fecha:TODAY(),hora:new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}),productos};
   if(idx>=0) despacho[idx]=entry;
   else despacho.push(entry);
-  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  saveDespacho();
   saveDrvHistory(entry);
   showStat('ch-status','success','✅ Lista guardada — '+chofer);
   renderDespachoSess();
@@ -2052,10 +2159,19 @@ function _openPrintWindow(date, data) {
   w.document.close();
 }
 
-// INIT
+// INIT — carga local inmediata, luego sincroniza con Firebase
 initCFPage();
 renderDespachoSess();
 renderMarkSection();
+
+fbLoadAll().then(ok => {
+  if(ok) {
+    fbListenDespacho();
+    initCFPage();
+    renderDespachoSess();
+    renderMarkSection();
+  }
+}).catch(() => setFBStatus('error'));
 </script>
 
 </body>
