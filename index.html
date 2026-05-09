@@ -1101,11 +1101,6 @@ function renderMarkSection() {
   container.innerHTML = html;
 }
 
-function toggleMarkK(mkey, type) {
-  if(!marks[mkey]) marks[mkey]={ent:false,entQty:0,ret:false,retQty:0};
-  marks[mkey][type]=!marks[mkey][type];
-  renderMarkSection();
-}
 function updateMarkQtyK(mkey, field, val) {
   if(!marks[mkey]) marks[mkey]={ent:false,entQty:0,suma:0,resta:0};
   marks[mkey][field]=parseInt(val)||0;
@@ -1440,16 +1435,6 @@ function toggleCS(id) {
   if(!isOpen){ dd.classList.add('open'); btn.classList.add('open'); }
 }
 
-function populateChoferDD() {
-  const dl=JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
-  const order=JSON.parse(localStorage.getItem('fs_driver_order')||'[]');
-  const sorted=order.length?order.filter(n=>dl.includes(n)).concat(dl.filter(n=>!order.includes(n))):dl;
-  const dd=document.getElementById('chofer-cs-dd'); if(!dd) return;
-  dd.innerHTML='';
-  const newOpt=document.createElement('div'); newOpt.className='cs-opt new-o'; newOpt.textContent='➕ Nuevo chofer...';
-  newOpt.addEventListener('click',()=>selectChofer('__new__')); dd.appendChild(newOpt);
-  sorted.forEach(nombre=>{ const o=document.createElement('div'); o.className='cs-opt'; o.textContent=nombre; o.addEventListener('click',()=>selectChofer(nombre)); dd.appendChild(o); });
-}
 
 function selectChofer(nombre) {
   document.getElementById('ch-nombre').value = nombre;
@@ -1651,10 +1636,12 @@ function renderChoferEditList(container) {
 
   // Show all known products with their quantities
   const allRows = new Set([...allProds, ...choferEditItems.map(x=>x.nombre)]);
+  const _choferKey = (document.getElementById('ch-nombre').value.trim()).replace(/[^a-z0-9]/gi,'_');
   html += [...allRows].map((nombre,i) => {
     const item = choferEditItems.find(x=>x.nombre===nombre);
     const qty = item ? item.cantidad : 0;
-    const isListo = marks[nombre]?.ent;
+    const _mkey = (_choferKey+'_'+nombre).replace(/[^a-z0-9]/gi,'_');
+    const isListo = marks[_mkey]?.ent;
     return `<div class="cp-item" style="${qty>0?'background:rgba(0,212,255,.04);border-radius:6px;padding:5px 8px;':'padding:5px 4px;'}">
       <span style="font-size:11px;font-weight:700;flex:1;">${nombre}</span>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -1716,8 +1703,6 @@ function saveChoferEditList() {
   renderDespachoSess();
   renderMarkSection();
 }
-
-function showChoferPreview(nombre) { showChoferEditableList(nombre); }
 
 // ════════════════════════════════════════════════════════
 // DRIVER HISTORY - DATE PICKER
@@ -1827,33 +1812,11 @@ function promptNewChofer() {
   selectChofer(n);
 }
 
-function createNewChofer() {
-  const nombre = document.getElementById('new-chofer-input')?.value.trim();
-  if(!nombre) return;
-  let dl = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
-  if(!dl.includes(nombre)){ dl.push(nombre); localStorage.setItem('fs_driver_list',JSON.stringify(dl)); }
-  selectChofer(nombre);
-}
-
 // INIT
 initCFPage();
 renderDespachoSess();
 renderMarkSection();
 </script>
-
-      <div style="font-size:11px;color:var(--muted);letter-spacing:2px;">SELECCIONA O CREA NUEVO</div>
-    </div>
-    <div id="chofer-picker-list" style="max-height:50vh;overflow-y:auto;scrollbar-width:thin;margin-bottom:12px;"></div>
-    <div style="background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:10px;margin-bottom:10px;">
-      <div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:8px;">➕ NUEVO CHOFER</div>
-      <div style="display:flex;gap:8px;">
-        <input class="if" id="new-chofer-input" placeholder="Nombre del chofer..." style="flex:1;font-size:13px;">
-        <button onclick="createNewChofer()" style="background:var(--green);border:none;color:#000;padding:8px 14px;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;">+</button>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 </body>
 </html>
