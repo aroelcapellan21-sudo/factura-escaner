@@ -576,6 +576,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div id="admin-products" style="max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>
       <button class="btn btn-green" style="font-size:15px;" onclick="saveProductConfig()">💾 GUARDAR CONFIG</button>
       <hr class="sep">
+      <div class="card-title">🔢 ORDEN DE PRODUCTOS</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Arrastra para fijar el orden. Los usuarios ven este orden en todas las listas.</p>
+      <div id="admin-product-order" style="max-height:180px;overflow-y:auto;margin-bottom:10px;"></div>
+      <button class="btn btn-orange" style="font-size:15px;" onclick="saveProductOrder()">💾 GUARDAR ORDEN PRODUCTOS</button>
+      <hr class="sep">
       <div class="card-title">🔢 ORDEN DE CHOFERES</div>
       <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Arrastra para reorganizar. El usuario ve este orden fijo.</p>
       <div id="admin-chofer-order" style="max-height:180px;overflow-y:auto;margin-bottom:10px;"></div>
@@ -678,12 +683,18 @@ function getAllProducts() {
     if(d.despacho) d.despacho.forEach(e=>e.productos.forEach(p=>all.add(p.nombre)));
   });
   despacho.forEach(e=>e.productos.forEach(p=>all.add(p.nombre)));
-  // Driver history
   const dlist = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
   dlist.forEach(n=>{
-    const dh=JSON.parse(localStorage.getItem('fs_drv_'+n.replace(/\W/g,'_'))||'{"historial":[]}');
+    const dh=JSON.parse(localStorage.getItem('fs_drv_'+n.replace(/[^a-z0-9]/gi,'_'))||'{"historial":[]}');
     dh.historial.forEach(h=>h.productos.forEach(p=>all.add(p.nombre)));
   });
+  // Apply admin-fixed order
+  const order = JSON.parse(localStorage.getItem('fs_product_order')||'[]');
+  if(order.length) {
+    const ordered = order.filter(n=>all.has(n));
+    const rest = [...all].filter(n=>!order.includes(n)).sort();
+    return [...ordered, ...rest];
+  }
   return [...all].sort();
 }
 
@@ -1279,6 +1290,7 @@ function verifyCbAdmin() { if(document.getElementById('adminCb-pass').value===PA
 function saveApiKey() { apiKey=document.getElementById('admin-apikey').value.trim(); localStorage.setItem('fs_apikey',apiKey); alert('✅ API Key guardada'); }
 
 function renderAdminProducts() {
+  renderAdminProductOrder();
   const all=getAllProducts();
   const el=document.getElementById('admin-products');
   if(!all.length){ el.innerHTML='<p style="font-size:11px;color:var(--muted);">Analiza facturas primero.</p>'; return; }
@@ -1295,6 +1307,39 @@ function saveProductConfig() {
   saveConfig();
   localStorage.setItem('fs_prices',JSON.stringify(priceConfig));
   alert('✅ Configuración guardada'); closeModal('adminModal');
+}
+
+// ── PRODUCT ORDER ──
+function renderAdminProductOrder() {
+  const allProds = getAllProducts(); // already uses saved order
+  const el = document.getElementById('admin-product-order');
+  if(!allProds.length){ el.innerHTML='<p style="font-size:11px;color:var(--muted);">No hay productos aún.</p>'; return; }
+  el.innerHTML = allProds.map((n,i)=>`
+    <div draggable="true" ondragstart="dragProdIdx=${i}" ondragover="event.preventDefault()" ondrop="dropProdOrder(event,${i})"
+      style="display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;cursor:grab;">
+      <span style="color:var(--muted);font-size:14px;">☰</span>
+      <span style="font-size:12px;font-weight:700;flex:1;">${n}</span>
+      <span class="badge bc">#${i+1}</span>
+    </div>`).join('');
+  el.dataset.prods = JSON.stringify(allProds);
+}
+
+let dragProdIdx = null;
+function dropProdOrder(e, targetIdx) {
+  e.preventDefault();
+  if(dragProdIdx===null||dragProdIdx===targetIdx) return;
+  const prods = JSON.parse(document.getElementById('admin-product-order').dataset.prods||'[]');
+  const item = prods.splice(dragProdIdx,1)[0];
+  prods.splice(targetIdx,0,item);
+  localStorage.setItem('fs_product_order', JSON.stringify(prods));
+  dragProdIdx = null;
+  renderAdminProductOrder();
+}
+
+function saveProductOrder() {
+  const prods = JSON.parse(document.getElementById('admin-product-order').dataset.prods||'[]');
+  localStorage.setItem('fs_product_order', JSON.stringify(prods));
+  alert('✅ Orden de productos guardado');
 }
 
 let dragIdx=null;
