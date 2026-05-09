@@ -238,6 +238,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* ── SEP ── */
 .sep{border:none;border-top:1px solid var(--border);margin:12px 0;}
+/* ── TOTAL BOX ── */
+.total-box{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.25);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+.total-label{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--muted);}
+.total-value{font-family:'Share Tech Mono',monospace;font-size:18px;color:var(--green);font-weight:700;}
 /* ── EMPTY ── */
 .empty{text-align:center;padding:34px 14px;color:var(--muted);}
 .empty .ei{font-size:42px;margin-bottom:10px;}
@@ -355,12 +359,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="card">
       <div class="card-title">DATOS DEL CHOFER</div>
       <div class="il">SELECCIONAR CHOFER</div>
-      <div class="cs" id="chofer-cs">
-        <button class="cs-btn" onclick="toggleCS('chofer-cs')" type="button">
+      <div class="cs" id="chofer-cs" style="margin-bottom:10px;">
+        <button class="cs-btn" onclick="toggleChoferDD()" type="button" id="chofer-picker-btn">
           <span id="chofer-cs-label" style="color:var(--muted);">— Elige o crea chofer —</span>
           <span style="color:var(--cyan);">▾</span>
         </button>
-        <div class="cs-dd" id="chofer-cs-dd"></div>
+        <div class="cs-dd" id="chofer-cs-dd" style="max-height:220px;overflow-y:auto;"></div>
       </div>
       <div class="new-cf-box" id="new-chofer-box">
         <div class="il">NOMBRE DEL NUEVO CHOFER</div>
@@ -444,8 +448,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <span class="badge bc" id="ch-count">0</span>
         </div>
         <div class="tbl-wrap">
-          <table class="tbl"><thead><tr><th>PRODUCTO</th><th>UND</th><th>CAJAS</th><th>SUELTAS</th></tr></thead>
+          <table class="tbl"><thead><tr><th>PRODUCTO</th><th>UND</th><th>CAJAS</th><th>SUELTAS</th><th>TOTAL</th></tr></thead>
           <tbody id="ch-result-body"></tbody></table>
+        </div>
+        <div class="total-box">
+          <div class="total-label">TOTAL FACTURA</div>
+          <div class="total-value" id="ch-result-total">RD$ 0.00</div>
         </div>
       </div>
       <button class="btn btn-green" onclick="saveCH()">✅ AGREGAR A DESPACHO</button>
@@ -559,8 +567,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <button class="btn btn-primary" style="margin-top:8px;font-size:15px;" onclick="saveApiKey()">GUARDAR API KEY</button>
       </div>
       <hr class="sep">
-      <div class="card-title">UNIDADES POR CAJA</div>
-      <div id="admin-products" style="max-height:180px;overflow-y:auto;margin-bottom:10px;"></div>
+      <div class="card-title">PRODUCTOS — CAJAS Y PRECIOS</div>
+      <div style="display:flex;gap:8px;padding:4px 0;margin-bottom:4px;">
+        <div style="flex:2;font-size:10px;color:var(--muted);letter-spacing:1px;">PRODUCTO</div>
+        <div style="width:52px;font-size:10px;color:var(--muted);letter-spacing:1px;text-align:center;">UND/CAJA</div>
+        <div style="width:70px;font-size:10px;color:var(--muted);letter-spacing:1px;text-align:center;">PRECIO RD$</div>
+      </div>
+      <div id="admin-products" style="max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>
       <button class="btn btn-green" style="font-size:15px;" onclick="saveProductConfig()">💾 GUARDAR CONFIG</button>
       <hr class="sep">
       <div class="card-title">🔢 ORDEN DE CHOFERES</div>
@@ -615,6 +628,7 @@ const TODAYFMT = () => new Date().toLocaleDateString('es-DO',{weekday:'short',da
 
 let apiKey = localStorage.getItem('fs_apikey') || '';
 let productConfig = JSON.parse(localStorage.getItem('fs_config') || '{}');
+let priceConfig = JSON.parse(localStorage.getItem('fs_prices') || '{}');
 let history = JSON.parse(localStorage.getItem('fs_history') || '{}');
 let despacho = JSON.parse(localStorage.getItem('fs_despacho') || '[]');
 let adminCallback = null;
@@ -649,7 +663,7 @@ function goTab(name) {
   const map={cf:0,choferes:1,comparar:2,historial:3};
   document.querySelectorAll('.tab')[map[name]].classList.add('active');
   if(name==='cf') initCFPage();
-  if(name==='choferes'){ renderDespachoSess(); populateChoferDD(); }
+  if(name==='choferes'){ renderDespachoSess(); }
   if(name==='comparar') populateDateDD();
   if(name==='historial') showHist(histView);
 }
@@ -695,10 +709,29 @@ function initCFPage() {
 
 function resetCF() {
   const today=TODAY();
+  // Save current despacho to history before clearing
+  if(despacho.length) {
+    if(!history[today]) history[today]={};
+    // Only save if not already saved
+    if(!history[today].despacho) history[today].despacho = [];
+    // Merge with existing
+    despacho.forEach(e => {
+      const exists = history[today].despacho.find(x=>x.id===e.id);
+      if(!exists) history[today].despacho.push(e);
+    });
+  }
+  // Clear CF and despacho for today
   if(history[today]) delete history[today].cf;
   saveHistory();
+  // Clear despacho session
+  despacho=[];
+  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  marks={};
   clearCFImg();
+  renderDespachoSess();
+  renderMarkSection();
   initCFPage();
+  alert('✅ Lista restablecida. Despacho guardado en historial.');
 }
 
 function setCFMode(mode) {
@@ -901,17 +934,31 @@ async function analyzeCH() {
   finally{ hideLoader('ch-loader'); document.getElementById('ch-analyze-btn').disabled=false; document.getElementById('chZone').classList.remove('scanning'); }
 }
 
+function calcCHTotal() {
+  if(!chResult) return;
+  let total=0;
+  chResult.productos.forEach(p=>{ total+=(p.cantidad||0)*(priceConfig[p.nombre]||0); });
+  const el=document.getElementById('ch-result-total');
+  if(el) el.textContent='RD$ '+total.toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
 function renderCHResult(result) {
   document.getElementById('ch-result-title').textContent=result.chofer;
   document.getElementById('ch-count').textContent=result.productos.length+' items';
   const tbody=document.getElementById('ch-result-body');
-  tbody.innerHTML=result.productos.map((p,i)=>`<tr>
-    <td class="pname">${p.nombre}</td>
-    <td><input class="qty-in" type="number" min="0" value="${p.cantidad}" id="chr-qty-${i}" onchange="recalcCH(${i})"></td>
-    <td><span class="badge bg" id="chr-cajas-${i}">${p.cajas}</span></td>
-    <td><span class="badge bo" id="chr-sueltas-${i}">${p.sueltas}</span></td>
-  </tr>`).join('');
+  tbody.innerHTML=result.productos.map((p,i)=>{
+    const precio=priceConfig[p.nombre]||0;
+    const subtotal=p.cantidad*precio;
+    return `<tr>
+      <td class="pname">${p.nombre}</td>
+      <td><input class="qty-in" type="number" min="0" value="${p.cantidad}" id="chr-qty-${i}" onchange="recalcCH(${i})"></td>
+      <td><span class="badge bg" id="chr-cajas-${i}">${p.cajas}</span></td>
+      <td><span class="badge bo" id="chr-sueltas-${i}">${p.sueltas}</span></td>
+      <td style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);" id="chr-sub-${i}">${precio>0?'RD$'+subtotal.toLocaleString('es-DO'):'-'}</td>
+    </tr>`;
+  }).join('');
   document.getElementById('ch-result').style.display='block';
+  calcCHTotal();
 }
 
 function recalcCH(i) {
@@ -919,6 +966,10 @@ function recalcCH(i) {
   p.cantidad=qty; p.cajas=Math.floor(qty/upb(p.nombre)); p.sueltas=qty%upb(p.nombre);
   document.getElementById('chr-cajas-'+i).textContent=p.cajas;
   document.getElementById('chr-sueltas-'+i).textContent=p.sueltas;
+  const precio=priceConfig[p.nombre]||0;
+  const sub=document.getElementById('chr-sub-'+i);
+  if(sub) sub.textContent=precio>0?'RD$'+(qty*precio).toLocaleString('es-DO'):'-';
+  calcCHTotal();
 }
 
 function saveCH() {
@@ -1038,10 +1089,13 @@ function runCompare(mode) {
   }
 
   const cfCounts={};
-  if(cfData) cfData.productos.forEach(p=>{ cfCounts[p.nombre]=p.total||0; });
+  if(cfData) cfData.productos.forEach(p=>{ cfCounts[p.nombre]=(p.total||((p.cajas||0)*upb(p.nombre))+(p.unidades||0)||p.cantidad||0); });
 
   const despCounts={};
-  despData.forEach(e=>e.productos.forEach(p=>{ despCounts[p.nombre]=(despCounts[p.nombre]||0)+(p.cantidad||0); }));
+  despData.forEach(e=>e.productos.forEach(p=>{
+    const qty = Math.abs(p.cantidad||0);
+    despCounts[p.nombre]=(despCounts[p.nombre]||0)+qty;
+  }));
 
   const all=new Set([...Object.keys(cfCounts),...Object.keys(despCounts)]);
   let ok=0,over=0,under=0;
@@ -1228,16 +1282,19 @@ function renderAdminProducts() {
   const all=getAllProducts();
   const el=document.getElementById('admin-products');
   if(!all.length){ el.innerHTML='<p style="font-size:11px;color:var(--muted);">Analiza facturas primero.</p>'; return; }
-  el.innerHTML=all.map(n=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-    <div style="flex:1;font-size:11px;font-weight:700;">${n}</div>
-    <input style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;width:52px;text-align:center;" type="number" min="1" value="${productConfig[n]||DEFAULT_UPB}" data-p="${n}">
-    <span style="font-size:10px;color:var(--muted);">u/caja</span>
+  el.innerHTML=all.map(n=>`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+    <div style="flex:2;font-size:11px;font-weight:700;line-height:1.3;">${n}</div>
+    <input style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;width:52px;text-align:center;" type="number" min="1" value="${productConfig[n]||DEFAULT_UPB}" data-p="${n}">
+    <input style="background:var(--surface);border:1px solid rgba(0,255,136,.3);border-radius:5px;padding:4px 4px;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:11px;width:70px;text-align:center;" type="number" min="0" value="${priceConfig[n]||0}" data-price="${n}" placeholder="RD$">
   </div>`).join('');
 }
 
 function saveProductConfig() {
   document.querySelectorAll('[data-p]').forEach(inp=>{ productConfig[inp.dataset.p]=parseInt(inp.value)||DEFAULT_UPB; });
-  saveConfig(); alert('✅ Configuración guardada'); closeModal('adminModal');
+  document.querySelectorAll('[data-price]').forEach(inp=>{ priceConfig[inp.dataset.price]=parseFloat(inp.value)||0; });
+  saveConfig();
+  localStorage.setItem('fs_prices',JSON.stringify(priceConfig));
+  alert('✅ Configuración guardada'); closeModal('adminModal');
 }
 
 let dragIdx=null;
@@ -1289,14 +1346,15 @@ function populateChoferDD() {
 }
 
 function selectChofer(nombre) {
-  const isNew=nombre==='__new__';
-  document.getElementById('ch-nombre').value=isNew?'':nombre;
-  document.getElementById('chofer-cs-label').textContent=isNew?'➕ Nuevo chofer...':nombre;
-  document.getElementById('chofer-cs-label').style.color=isNew?'var(--green)':'var(--cyan)';
-  document.getElementById('new-chofer-box').classList.toggle('vis',isNew);
-  document.getElementById('chofer-cs-dd').classList.remove('open');
-  document.getElementById('chofer-cs').querySelector('.cs-btn').classList.remove('open');
-  showChoferPreview(isNew?'':nombre);
+  document.getElementById('ch-nombre').value = nombre;
+  const btn = document.getElementById('chofer-picker-btn');
+  const label = document.getElementById('chofer-cs-label');
+  label.textContent = nombre;
+  label.style.color = 'var(--cyan)';
+  if(btn) btn.style.borderColor = 'var(--cyan)';
+  document.getElementById('new-chofer-box').classList.remove('vis');
+  closeModal('choferPickerModal');
+  showChoferEditableList(nombre);
 }
 
 function populateDateDD() {
@@ -1455,46 +1513,220 @@ function confirmVoice() {
     }
   }
 
-  if(!matched) showStat('ch-status','warn','⚠️ No se pudo identificar el producto: "'+text+'"');
-  clearVoice();
+  if(!matched) showStat('ch-status','warn','⚠️ No se pudo identificar: "'+text+'" — intenta de nuevo');
+  // Always clear after confirm
+  voiceText = '';
+  document.getElementById('voice-text').textContent = '';
 }
 
 // ════════════════════════════════════════════════════════
-// CHOFER PREVIEW
+// CHOFER EDITABLE LIST (shown after selecting chofer)
 // ════════════════════════════════════════════════════════
-function showChoferPreview(nombre) {
+let choferEditItems = []; // current editable items for selected chofer
+
+function showChoferEditableList(nombre) {
   const preview = document.getElementById('chofer-preview');
   const cpName = document.getElementById('cp-name');
   const cpProds = document.getElementById('cp-products');
-
   if(!nombre){ preview.classList.remove('visible'); return; }
 
-  const key = 'fs_drv_'+nombre.replace(/\W/g,'_');
-  const dh = JSON.parse(localStorage.getItem(key)||'{"historial":[],"totales":{}}');
+  // Load existing despacho for this chofer today
+  const existing = despacho.find(e=>e.chofer===nombre);
+  choferEditItems = existing ? JSON.parse(JSON.stringify(existing.productos)) : [];
 
   cpName.textContent = nombre;
-
-  if(!Object.keys(dh.totales||{}).length){
-    cpProds.innerHTML = '<div style="font-size:11px;color:var(--muted);">Sin historial previo.</div>';
-  } else {
-    // Show last entry products
-    const last = dh.historial[dh.historial.length-1];
-    let html = '<div style="font-size:10px;color:var(--muted);margin-bottom:5px;letter-spacing:.5px;">ÚLTIMA FACTURA: '+( last?.fecha||'')+'</div>';
-    if(last) {
-      last.productos.forEach(p=>{
-        const isListo = marks[p.nombre]?.ent;
-        html += `<div class="cp-item">
-          <span style="font-size:11px;font-weight:700;">${p.nombre}</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-family:'Share Tech Mono',monospace;font-size:11px;">${p.cantidad} und</span>
-            ${isListo?'<span class="cp-listo">✅ LISTO</span>':''}
-          </div>
-        </div>`;
-      });
-    }
-    cpProds.innerHTML = html;
-  }
+  renderChoferEditList(cpProds);
   preview.classList.add('visible');
+}
+
+function renderChoferEditList(container) {
+  const allProds = getAllProducts();
+  let html = `<div style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;">PRODUCTOS DEL DESPACHO</div>`;
+
+  // Show all known products with their quantities
+  const allRows = new Set([...allProds, ...choferEditItems.map(x=>x.nombre)]);
+  html += [...allRows].map((nombre,i) => {
+    const item = choferEditItems.find(x=>x.nombre===nombre);
+    const qty = item ? item.cantidad : 0;
+    const isListo = marks[nombre]?.ent;
+    return `<div class="cp-item" style="${qty>0?'background:rgba(0,212,255,.04);border-radius:6px;padding:5px 8px;':'padding:5px 4px;'}">
+      <span style="font-size:11px;font-weight:700;flex:1;">${nombre}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <input type="number" min="0" value="${qty}" 
+          style="width:52px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:3px 5px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;text-align:center;"
+          onchange="updateChoferEditItem('${nombre.replace(/'/g,"&#39;")}',this.value)" id="ce-qty-${i}">
+        ${isListo?'<span class="cp-listo">✅</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Add new product
+  html += `<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);">
+    <div style="display:flex;gap:6px;">
+      <input class="if" id="ce-new-name" placeholder="Agregar producto..." style="flex:2;font-size:12px;padding:7px;">
+      <input type="number" min="0" value="0" id="ce-new-qty" class="qty-in" style="width:52px;">
+      <button onclick="addChoferEditItem()" style="background:var(--green);border:none;color:#000;padding:7px 11px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;">+</button>
+    </div>
+  </div>`;
+
+  html += `<button onclick="saveChoferEditList()" style="width:100%;margin-top:10px;padding:10px;border-radius:8px;background:linear-gradient(135deg,var(--green),#00aa55);color:#000;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;">💾 GUARDAR LISTA</button>`;
+
+  container.innerHTML = html;
+}
+
+function updateChoferEditItem(nombre, val) {
+  const qty = parseInt(val)||0;
+  const existing = choferEditItems.find(x=>x.nombre===nombre);
+  if(existing) existing.cantidad = qty;
+  else if(qty>0) choferEditItems.push({nombre,cantidad:qty,cajas:Math.floor(qty/upb(nombre)),sueltas:qty%upb(nombre)});
+}
+
+function addChoferEditItem() {
+  const nombre = document.getElementById('ce-new-name').value.trim();
+  const qty = parseInt(document.getElementById('ce-new-qty').value)||0;
+  if(!nombre) return;
+  const existing = choferEditItems.find(x=>x.nombre===nombre);
+  if(existing) existing.cantidad += qty;
+  else choferEditItems.push({nombre,cantidad:qty,cajas:Math.floor(qty/upb(nombre)),sueltas:qty%upb(nombre)});
+  document.getElementById('ce-new-name').value='';
+  document.getElementById('ce-new-qty').value='0';
+  const cpProds = document.getElementById('cp-products');
+  renderChoferEditList(cpProds);
+}
+
+function saveChoferEditList() {
+  const chofer = document.getElementById('ch-nombre').value.trim();
+  if(!chofer) return;
+  const productos = choferEditItems.filter(x=>x.cantidad>0).map(x=>({...x,cajas:Math.floor(x.cantidad/upb(x.nombre)),sueltas:x.cantidad%upb(x.nombre)}));
+  if(!productos.length){ alert('Agrega al menos un producto'); return; }
+  // Remove existing entry for this chofer today
+  const idx = despacho.findIndex(e=>e.chofer===chofer);
+  const entry = {id:Date.now(),chofer,ficha:document.getElementById('ch-ficha').value.trim(),fecha:TODAY(),hora:new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}),productos};
+  if(idx>=0) despacho[idx]=entry;
+  else despacho.push(entry);
+  localStorage.setItem('fs_despacho',JSON.stringify(despacho));
+  saveDrvHistory(entry);
+  showStat('ch-status','success','✅ Lista guardada — '+chofer);
+  renderDespachoSess();
+  renderMarkSection();
+}
+
+function showChoferPreview(nombre) { showChoferEditableList(nombre); }
+
+// ════════════════════════════════════════════════════════
+// DRIVER HISTORY - DATE PICKER
+// ════════════════════════════════════════════════════════
+function showDriverDetail(nombre) {
+  const dh = JSON.parse(localStorage.getItem('fs_drv_'+nombre.replace(/\W/g,'_'))||'{"historial":[],"totales":{}}');
+  
+  // Get available dates
+  const dates = [...new Set(dh.historial.map(h=>h.fecha))].sort().reverse();
+  
+  let html = `<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--cyan);margin-bottom:10px;letter-spacing:2px;">TOTAL ACUMULADO</div>`;
+  
+  if(Object.keys(dh.totales||{}).length) {
+    html += `<div class="tbl-wrap" style="margin-bottom:14px;"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th><th>SUELTAS</th></tr></thead><tbody>`;
+    html += Object.entries(dh.totales).map(([n,v])=>`<tr><td class="pname">${n}</td><td style="font-family:'Share Tech Mono',monospace;">${v}</td><td><span class="badge bg">${Math.floor(v/upb(n))}</span></td><td><span class="badge bo">${v%upb(n)}</span></td></tr>`).join('');
+    html += `</tbody></table></div>`;
+  }
+
+  // Date picker for history
+  html += `<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--orange);margin-bottom:8px;letter-spacing:2px;">CONSULTAR POR FECHA</div>`;
+  
+  if(dates.length) {
+    html += `<div style="max-height:200px;overflow-y:auto;scrollbar-width:thin;margin-bottom:12px;">`;
+    html += dates.map(date => {
+      const dayEntries = dh.historial.filter(h=>h.fecha===date);
+      const total = dayEntries.reduce((sum,h)=>sum+h.productos.reduce((s,p)=>s+(p.cantidad||0),0),0);
+      return `<div onclick="showDriverDateDetail('${nombre}','${date}')" 
+        style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;"
+        onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--cyan);">${date}</div>
+          <div style="font-size:10px;color:var(--muted);">${dayEntries.length} facturas · ${total} unidades</div>
+        </div>
+        <span style="color:var(--cyan);font-size:18px;">›</span>
+      </div>`;
+    }).join('');
+    html += `</div>`;
+  } else {
+    html += `<p style="font-size:12px;color:var(--muted);">Sin historial de fechas.</p>`;
+  }
+
+  document.getElementById('dm-title').textContent = nombre;
+  document.getElementById('dm-content').innerHTML = html;
+  document.getElementById('driverModal').classList.add('active');
+}
+
+function showDriverDateDetail(nombre, date) {
+  const dh = JSON.parse(localStorage.getItem('fs_drv_'+nombre.replace(/\W/g,'_'))||'{"historial":[]}');
+  const dayEntries = dh.historial.filter(h=>h.fecha===date);
+  
+  // Aggregate products for this date
+  const totals = {};
+  dayEntries.forEach(h=>h.productos.forEach(p=>{ totals[p.nombre]=(totals[p.nombre]||0)+(p.cantidad||0); }));
+
+  let html = `<div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--orange);letter-spacing:2px;margin-bottom:10px;">📅 ${date}</div>`;
+  html += `<div class="tbl-wrap" style="margin-bottom:12px;"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th><th>SUELTAS</th></tr></thead><tbody>`;
+  html += Object.entries(totals).map(([n,v])=>`<tr><td class="pname">${n}</td><td style="font-family:'Share Tech Mono',monospace;">${v}</td><td><span class="badge bg">${Math.floor(v/upb(n))}</span></td><td><span class="badge bo">${v%upb(n)}</span></td></tr>`).join('');
+  html += `</tbody></table></div>`;
+  html += `<button onclick="showDriverDetail('${nombre}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:7px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;">← VOLVER</button>`;
+
+  document.getElementById('dm-content').innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════════
+// CHOFER INLINE DROPDOWN
+// ════════════════════════════════════════════════════════
+function toggleChoferDD() {
+  const dd = document.getElementById('chofer-cs-dd');
+  const btn = document.getElementById('chofer-picker-btn');
+  const isOpen = dd.classList.contains('open');
+  // Close all dropdowns first
+  document.querySelectorAll('.cs-dd.open').forEach(d=>{ d.classList.remove('open'); d.previousElementSibling?.classList.remove('open'); });
+  if(!isOpen) {
+    populateChoferInlineDD();
+    dd.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function populateChoferInlineDD() {
+  const dl = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  const order = JSON.parse(localStorage.getItem('fs_driver_order')||'[]');
+  const sorted = order.length ? order.filter(n=>dl.includes(n)).concat(dl.filter(n=>!order.includes(n))) : dl;
+  const dd = document.getElementById('chofer-cs-dd');
+
+  let html = '';
+  // New chofer option
+  html += `<div class="cs-opt new-o" onclick="promptNewChofer()">➕ Nuevo chofer...</div>`;
+
+  if(!sorted.length) {
+    html += `<div class="cs-opt" style="color:var(--muted);cursor:default;">Sin choferes registrados</div>`;
+  } else {
+    sorted.forEach(nombre => {
+      html += `<div class="cs-opt" onclick="selectChofer('${nombre}')">${nombre}</div>`;
+    });
+  }
+  dd.innerHTML = html;
+}
+
+function promptNewChofer() {
+  const nombre = prompt('Nombre del nuevo chofer:');
+  if(!nombre || !nombre.trim()) return;
+  const n = nombre.trim();
+  let dl = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  if(!dl.includes(n)){ dl.push(n); localStorage.setItem('fs_driver_list',JSON.stringify(dl)); }
+  selectChofer(n);
+}
+
+function createNewChofer() {
+  const nombre = document.getElementById('new-chofer-input')?.value.trim();
+  if(!nombre) return;
+  let dl = JSON.parse(localStorage.getItem('fs_driver_list')||'[]');
+  if(!dl.includes(nombre)){ dl.push(nombre); localStorage.setItem('fs_driver_list',JSON.stringify(dl)); }
+  selectChofer(nombre);
 }
 
 // INIT
@@ -1502,5 +1734,25 @@ initCFPage();
 renderDespachoSess();
 renderMarkSection();
 </script>
+
+<!-- CHOFER PICKER MODAL -->
+<div class="modal-ov" id="choferPickerModal">
+  <div class="modal" style="max-width:420px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,.4);">CHOFERES</div>
+      <div style="font-size:11px;color:var(--muted);letter-spacing:2px;">SELECCIONA O CREA NUEVO</div>
+    </div>
+    <div id="chofer-picker-list" style="max-height:50vh;overflow-y:auto;scrollbar-width:thin;margin-bottom:12px;"></div>
+    <div style="background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:10px;margin-bottom:10px;">
+      <div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:8px;">➕ NUEVO CHOFER</div>
+      <div style="display:flex;gap:8px;">
+        <input class="if" id="new-chofer-input" placeholder="Nombre del chofer..." style="flex:1;font-size:13px;">
+        <button onclick="createNewChofer()" style="background:var(--green);border:none;color:#000;padding:8px 14px;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;">+</button>
+      </div>
+    </div>
+    <button class="btn btn-sec" style="font-size:14px;" onclick="closeModal('choferPickerModal')">CANCELAR</button>
+  </div>
+</div>
+
 </body>
 </html>
