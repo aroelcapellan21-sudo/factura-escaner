@@ -1036,37 +1036,60 @@ function renderMarkSection() {
   const sec=document.getElementById('mark-section');
   if(!despacho.length){ sec.style.display='none'; return; }
   sec.style.display='block';
-  // Aggregate all products
-  const allProds={};
-  despacho.forEach(e=>e.productos.forEach(p=>{ allProds[p.nombre]=(allProds[p.nombre]||0)+(p.cantidad||0); }));
   const container=document.getElementById('mark-list');
-  container.innerHTML=Object.entries(allProds).map(([nombre,qty])=>{
-    const m=marks[nombre]||{ent:false,entQty:qty,ret:false,retQty:0};
-    return `<div class="mark-row">
-      <div class="mark-name">${nombre}<div style="font-size:10px;color:var(--muted);">Total: ${qty} und</div></div>
-      <div class="mark-box">
-        <div class="mark-label ent">ENTREGADO</div>
-        <div class="mark-check ent-check${m.ent?' checked':''}" onclick="toggleMark('${nombre}','ent')" id="mc-ent-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}">✓</div>
-        <input class="mark-qty" type="number" min="0" value="${m.entQty}" id="mq-ent-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}" onchange="updateMarkQty('${nombre}','ent',this.value)">
-      </div>
-      <div class="mark-box">
-        <div class="mark-label ret">RET/SUMA</div>
-        <div class="mark-check ret-check${m.ret?' checked':''}" onclick="toggleMark('${nombre}','ret')" id="mc-ret-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}">↩</div>
-        <input class="mark-qty" type="number" min="0" value="${m.retQty||0}" id="mq-ret-${btoa(nombre).replace(/[^a-z0-9]/gi,'')}" onchange="updateMarkQty('${nombre}','ret',this.value)">
-      </div>
+
+  // Group by chofer
+  let html = '';
+  despacho.forEach(entry => {
+    const chofer = entry.chofer;
+    const mkKey = chofer.replace(/[^a-z0-9]/gi,'_');
+
+    // Chofer header
+    html += `<div style="background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(0,212,255,.04));border:1px solid rgba(0,212,255,.25);border-radius:10px;padding:10px 13px;margin-bottom:4px;margin-top:10px;color:var(--text);">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--cyan);">🚚 ${chofer}</div>
+      <div style="font-size:10px;color:var(--muted);">${entry.ficha?'Ficha: '+entry.ficha+' · ':''}${entry.productos.length} productos · ${entry.fecha} ${entry.hora}</div>
     </div>`;
-  }).join('');
+
+    // Products for this chofer
+    entry.productos.forEach(p => {
+      const nombre = p.nombre;
+      const qty = p.cantidad || 0;
+      const mkey = (mkKey+'_'+nombre).replace(/[^a-z0-9]/gi,'_');
+      if(!marks[mkey]) marks[mkey]={ent:false,entQty:qty,ret:false,retQty:0};
+      const m = marks[mkey];
+
+      html += `<div class="mark-row" style="padding-left:8px;">
+        <div class="mark-name">${nombre}
+          <div style="font-size:10px;color:var(--muted);">Total: ${qty} und · RD$${((priceConfig[nombre]||0)*qty).toLocaleString('es-DO')}</div>
+        </div>
+        <div class="mark-box">
+          <div class="mark-label ent">ENTREGADO</div>
+          <div class="mark-check ent-check${m.ent?' checked':''}" onclick="toggleMarkK('${mkey}','ent')">✓</div>
+          <input class="mark-qty" type="number" min="0" value="${m.entQty}" onchange="updateMarkQtyK('${mkey}','ent',this.value)">
+        </div>
+        <div class="mark-box">
+          <div class="mark-label ret">RET/SUMA</div>
+          <div class="mark-check ret-check${m.ret?' checked':''}" onclick="toggleMarkK('${mkey}','ret')">↩</div>
+          <input class="mark-qty" type="number" min="0" value="${m.retQty||0}" onchange="updateMarkQtyK('${mkey}','ret',this.value)">
+        </div>
+      </div>`;
+    });
+  });
+
+  container.innerHTML = html;
 }
 
-function toggleMark(nombre,type) {
-  if(!marks[nombre]) marks[nombre]={ent:false,entQty:0,ret:false,retQty:0};
-  marks[nombre][type]=!marks[nombre][type];
+function toggleMarkK(mkey, type) {
+  if(!marks[mkey]) marks[mkey]={ent:false,entQty:0,ret:false,retQty:0};
+  marks[mkey][type]=!marks[mkey][type];
   renderMarkSection();
 }
-function updateMarkQty(nombre,type,val) {
-  if(!marks[nombre]) marks[nombre]={ent:false,entQty:0,ret:false,retQty:0};
-  marks[nombre][type+'Qty']=parseInt(val)||0;
+function updateMarkQtyK(mkey, type, val) {
+  if(!marks[mkey]) marks[mkey]={ent:false,entQty:0,ret:false,retQty:0};
+  marks[mkey][type+'Qty']=parseInt(val)||0;
 }
+
+
 function saveMarks() {
   const today=TODAY();
   if(!history[today]) history[today]={};
@@ -1233,23 +1256,7 @@ function showDayDetail(date) {
   document.getElementById('dayModal').classList.add('active');
 }
 
-function showDriverDetail(nombre) {
-  const dh=JSON.parse(localStorage.getItem('fs_drv_'+nombre.replace(/\W/g,'_'))||'{"historial":[],"totales":{}}');
-  let html='';
-  if(Object.keys(dh.totales||{}).length){
-    html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--cyan);margin-bottom:8px;letter-spacing:2px;">TOTAL ACUMULADO</div>`;
-    html+=`<div class="tbl-wrap" style="margin-bottom:14px;"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>TOTAL</th><th>CAJAS</th><th>SUELTAS</th></tr></thead><tbody>`;
-    html+=Object.entries(dh.totales).map(([n,v])=>`<tr><td class="pname">${n}</td><td style="font-family:'Share Tech Mono',monospace;">${v}</td><td><span class="badge bg">${Math.floor(v/upb(n))}</span></td><td><span class="badge bo">${v%upb(n)}</span></td></tr>`).join('');
-    html+=`</tbody></table></div>`;
-  }
-  html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--orange);margin-bottom:8px;letter-spacing:2px;">HISTORIAL (${dh.historial.length})</div>`;
-  [...dh.historial].reverse().forEach(h=>{
-    html+=`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><div style="font-size:12px;font-weight:700;">${h.fecha} ${h.hora} <span class="badge bo">${h.ficha||'S/F'}</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${h.productos.map(p=>p.nombre+' ×'+p.cantidad).join(' · ')}</div></div>`;
-  });
-  document.getElementById('dm-title').textContent=nombre;
-  document.getElementById('dm-content').innerHTML=html;
-  document.getElementById('driverModal').classList.add('active');
-}
+
 
 function showPeriodDetail(view,key) {
   let dates=[];
@@ -1398,7 +1405,7 @@ function selectChofer(nombre) {
   label.style.color = 'var(--cyan)';
   if(btn) btn.style.borderColor = 'var(--cyan)';
   document.getElementById('new-chofer-box').classList.remove('vis');
-  closeModal('choferPickerModal');
+  
   showChoferEditableList(nombre);
 }
 
@@ -1780,11 +1787,6 @@ renderDespachoSess();
 renderMarkSection();
 </script>
 
-<!-- CHOFER PICKER MODAL -->
-<div class="modal-ov" id="choferPickerModal">
-  <div class="modal" style="max-width:420px;">
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,.4);">CHOFERES</div>
       <div style="font-size:11px;color:var(--muted);letter-spacing:2px;">SELECCIONA O CREA NUEVO</div>
     </div>
     <div id="chofer-picker-list" style="max-height:50vh;overflow-y:auto;scrollbar-width:thin;margin-bottom:12px;"></div>
@@ -1795,7 +1797,7 @@ renderMarkSection();
         <button onclick="createNewChofer()" style="background:var(--green);border:none;color:#000;padding:8px 14px;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;">+</button>
       </div>
     </div>
-    <button class="btn btn-sec" style="font-size:14px;" onclick="closeModal('choferPickerModal')">CANCELAR</button>
+
   </div>
 </div>
 
