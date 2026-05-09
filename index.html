@@ -575,8 +575,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <button class="btn btn-sec" style="font-size:14px;" onclick="closeModal('adminModal')">CANCELAR</button>
     </div>
     <div id="admin-panel" style="display:none;">
-      <div class="ig"><div class="il">🔑 GEMINI API KEY</div>
-        <input class="if" type="password" id="admin-apikey" placeholder="AIzaSy...">
+      <div class="ig"><div class="il">🔑 ANTHROPIC API KEY</div>
+        <input class="if" type="password" id="admin-apikey" placeholder="sk-ant-...">
         <button class="btn btn-primary" style="margin-top:8px;font-size:15px;" onclick="saveApiKey()">GUARDAR API KEY</button>
       </div>
       <div class="ig" style="margin-top:8px;">
@@ -1678,19 +1678,26 @@ function selectDate(date) {
 document.addEventListener('click',e=>{ if(!e.target.closest('.cs')) document.querySelectorAll('.cs-dd.open').forEach(d=>{ d.classList.remove('open'); d.previousElementSibling?.classList.remove('open'); }); });
 
 // ════════════════════════════════════════════════════════
-// API — GEMINI
+// API — ANTHROPIC
 // ════════════════════════════════════════════════════════
 async function callAPI(messages) {
   const key=apiKey||localStorage.getItem('fs_apikey')||'';
-  const parts=[];
-  for(const msg of messages){ if(Array.isArray(msg.content)){ for(const c of msg.content){ if(c.type==='text') parts.push({text:c.text}); else if(c.type==='image') parts.push({inlineData:{mimeType:c.source.media_type,data:c.source.data}}); } } else parts.push({text:msg.content}); }
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts}]})});
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1024,messages})
+  });
   if(!res.ok){ const e=await res.json(); throw new Error(e.error?.message||'Error API '+res.status); }
   const data=await res.json();
-  return data.candidates[0].content.parts[0].text.trim();
+  return data.content[0].text.trim();
 }
 
-function checkKey(sid) { const k=apiKey||localStorage.getItem('fs_apikey')||''; if(!k){ showStat(sid,'error','❌ Configura tu Gemini API Key en ADMIN'); return false; } return true; }
+function checkKey(sid) { const k=apiKey||localStorage.getItem('fs_apikey')||''; if(!k){ showStat(sid,'error','❌ Configura tu Anthropic API Key en ADMIN'); return false; } return true; }
 function parseJ(text) { try{return JSON.parse(text);}catch{const m=text.match(/\{[\s\S]*\}/);if(m)try{return JSON.parse(m[0]);}catch{}} return null; }
 function toB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
 
