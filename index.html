@@ -1711,7 +1711,7 @@ function hideLoader(id){document.getElementById(id)?.classList.remove('active');
 function closeModal(id){document.getElementById(id)?.classList.remove('active');}
 function saveHistory(date){localStorage.setItem('fs_history',JSON.stringify(history)); if(date) fbSaveHistory(date);}
 function saveConfig(){localStorage.setItem('fs_config',JSON.stringify(productConfig)); fbSaveConfigFB();}
-function saveDespacho(){saveDespacho(); fbSaveDespachoFB();}
+function saveDespacho(){localStorage.setItem('fs_despacho',JSON.stringify(despacho)); fbSaveDespachoFB();}
 
 document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('active');}));
 
