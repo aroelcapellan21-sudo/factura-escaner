@@ -285,8 +285,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="mini-panel">
       <div class="mini-title">📦 LISTA DEL DÍA</div>
       <div class="mini-scroll">
-        <table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th></tr></thead>
+        <table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th><th>RD$</th></tr></thead>
         <tbody id="cf-mini-body"></tbody></table>
+      </div>
+    </div>
+    <div id="cf-mini-totals" style="display:none;margin-bottom:10px;">
+      <div class="total-box" style="margin-bottom:6px;">
+        <div><div class="total-label">TOTAL C.FRÍO</div><div style="font-size:10px;color:var(--muted);" id="cf-mini-und"></div></div>
+        <div class="total-value" id="cf-mini-rd">RD$ 0.00</div>
       </div>
     </div>
     <button class="btn btn-sec" style="font-size:14px;" onclick="requireAdmin(resetCF)">🔓 RESETEAR (ADMIN)</button>
@@ -527,6 +533,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="sum-box-lbl" style="color:var(--red);">FALTANTE</div>
         </div>
       </div>
+      <div id="cmp-totals" style="display:none;margin-bottom:12px;"></div>
       <div id="cmp-detail"></div>
     </div>
   </div>
@@ -701,6 +708,10 @@ function getAllProducts() {
 }
 
 function upb(nombre) { return productConfig[nombre] || DEFAULT_UPB; }
+function fmtRD(n){ return 'RD$ '+n.toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function cfTotals(productos){ const und=productos.reduce((s,p)=>s+(p.total||0),0); const rd=productos.reduce((s,p)=>s+(p.total||0)*(priceConfig[p.nombre]||0),0); return {und,rd}; }
+function despTotals(despData){ let und=0,rd=0; despData.forEach(e=>e.productos.forEach(p=>{const q=Math.abs(p.cantidad||0);und+=q;rd+=q*(priceConfig[p.nombre]||0);})); return {und,rd}; }
+function entryTotals(entry){ let und=0,rd=0; entry.productos.forEach(p=>{const q=Math.abs(p.cantidad||0);und+=q;rd+=q*(priceConfig[p.nombre]||0);}); return {und,rd}; }
 
 // ════════════════════════════════════════════════════════
 // CUARTO FRÍO
@@ -713,7 +724,11 @@ function initCFPage() {
     document.getElementById('cf-locked').style.display='block';
     document.getElementById('cf-locked-msg').textContent='🔒 LISTA YA ESCANEADA — '+TODAYFMT();
     const tbody=document.getElementById('cf-mini-body');
-    tbody.innerHTML=d.cf.productos.map(p=>`<tr><td class="pname">${p.nombre}</td><td>${p.cajas||0}</td><td>${p.unidades||0}</td><td style="color:var(--green);font-family:'Share Tech Mono',monospace;">${p.total}</td></tr>`).join('');
+    tbody.innerHTML=d.cf.productos.map(p=>{const rd=(p.total||0)*(priceConfig[p.nombre]||0);return`<tr><td class="pname">${p.nombre}</td><td>${p.cajas||0}</td><td>${p.unidades||0}</td><td style="color:var(--green);font-family:'Share Tech Mono',monospace;">${p.total}</td><td style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);">${rd>0?fmtRD(rd):'-'}</td></tr>`;}).join('');
+    const t=cfTotals(d.cf.productos);
+    document.getElementById('cf-mini-und').textContent=t.und+' unidades totales';
+    document.getElementById('cf-mini-rd').textContent=fmtRD(t.rd);
+    document.getElementById('cf-mini-totals').style.display=t.und>0?'block':'none';
   } else {
     document.getElementById('cf-scan').style.display='block';
     document.getElementById('cf-locked').style.display='none';
@@ -798,9 +813,10 @@ function saveCFManual() {
   if(!productos.length){ alert('Agrega al menos un producto'); return; }
   const today=TODAY();
   if(!history[today]) history[today]={};
-  history[today].cf={fecha:today,productos};
+  const _tCF=cfTotals(productos);
+  history[today].cf={fecha:today,productos,totalUnidades:_tCF.und,totalRD:_tCF.rd};
   saveHistory();
-  showStat('cf-status','success','✅ Lista del día guardada');
+  showStat('cf-status','success',`✅ Lista guardada — ${_tCF.und} und · ${fmtRD(_tCF.rd)}`);
   setTimeout(()=>initCFPage(),1000);
 }
 
@@ -852,9 +868,10 @@ function saveCF() {
   cfResult.productos.forEach((p,i)=>{ p.cajas=parseInt(document.getElementById('cfr-cajas-'+i)?.value)||p.cajas; p.unidades=parseInt(document.getElementById('cfr-und-'+i)?.value)||p.unidades; p.total=(p.cajas*upb(p.nombre))+p.unidades; });
   const today=TODAY();
   if(!history[today]) history[today]={};
-  history[today].cf={fecha:today,productos:cfResult.productos};
+  const _tCF2=cfTotals(cfResult.productos);
+  history[today].cf={fecha:today,productos:cfResult.productos,totalUnidades:_tCF2.und,totalRD:_tCF2.rd};
   saveHistory();
-  showStat('cf-status','success','✅ Lista guardada — '+TODAYFMT());
+  showStat('cf-status','success',`✅ Lista guardada — ${_tCF2.und} und · ${fmtRD(_tCF2.rd)}`);
   setTimeout(()=>initCFPage(),1000);
 }
 
@@ -1020,14 +1037,22 @@ function renderDespachoSess() {
   const list=document.getElementById('ch-sess-list');
   document.getElementById('ch-sess-count').textContent=despacho.length+' facturas';
   if(!despacho.length){ list.innerHTML='<div class="empty"><div class="ei">📋</div><p>Aún no hay facturas.</p></div>'; return; }
-  list.innerHTML=despacho.map((e,i)=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+  const dayT=despTotals(despacho);
+  const rows=despacho.map((e,i)=>{
+    const eT=entryTotals(e);
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
       <div>
         <div style="font-weight:700;font-size:13px;">${e.chofer} <span class="badge bo">${e.ficha||'S/F'}</span></div>
-        <div style="font-size:10px;color:var(--muted);">${e.fecha} ${e.hora} · ${e.productos.length} productos</div>
+        <div style="font-size:10px;color:var(--muted);">${e.fecha} ${e.hora} · ${e.productos.length} prod · <span style="color:var(--green);">${eT.und} und${eT.rd>0?' · '+fmtRD(eT.rd):''}</span></div>
       </div>
       <button onclick="removeDesp(${i})" style="background:transparent;border:1px solid var(--red);color:var(--red);padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  const total=`<div class="total-box" style="margin-top:10px;">
+    <div><div class="total-label">TOTAL CHOFERES</div><div style="font-size:10px;color:var(--muted);">${dayT.und} unidades · ${despacho.length} facturas</div></div>
+    <div class="total-value">${fmtRD(dayT.rd)}</div>
+  </div>`;
+  list.innerHTML=rows+total;
 }
 
 function removeDesp(i) { despacho.splice(i,1); localStorage.setItem('fs_despacho',JSON.stringify(despacho)); renderDespachoSess(); renderMarkSection(); }
@@ -1163,6 +1188,38 @@ function runCompare(mode) {
   document.getElementById('cmp-under').textContent=under;
   document.getElementById('cmp-summary').style.display='block';
 
+  // Totales generales
+  const tCF = cfData ? cfTotals(cfData.productos) : {und:0,rd:0};
+  const tD = despTotals(despData);
+  const diffUnd = tCF.und - tD.und;
+  const diffRD = tCF.rd - tD.rd;
+  const diffClr = diffUnd===0?'var(--green)':diffUnd>0?'var(--yellow)':'var(--red)';
+  document.getElementById('cmp-totals').style.display='block';
+  document.getElementById('cmp-totals').innerHTML=`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:4px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--cyan);margin-bottom:10px;">RESUMEN TOTALES</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <div style="flex:1;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:9px;letter-spacing:1px;color:var(--cyan);font-weight:700;margin-bottom:4px;">🏭 C.FRÍO</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--cyan);">${tCF.und}</div>
+          <div style="font-size:9px;color:var(--muted);">unidades</div>
+          ${tCF.rd>0?`<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);margin-top:3px;">${fmtRD(tCF.rd)}</div>`:''}
+        </div>
+        <div style="flex:1;background:rgba(255,140,0,.06);border:1px solid rgba(255,140,0,.2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:9px;letter-spacing:1px;color:var(--orange);font-weight:700;margin-bottom:4px;">🚚 CHOFERES</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);">${tD.und}</div>
+          <div style="font-size:9px;color:var(--muted);">unidades</div>
+          ${tD.rd>0?`<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);margin-top:3px;">${fmtRD(tD.rd)}</div>`:''}
+        </div>
+        <div style="flex:1;background:${diffUnd===0?'rgba(0,255,136,.06)':diffUnd>0?'rgba(255,214,0,.06)':'rgba(255,34,68,.06)'};border:1px solid ${diffUnd===0?'rgba(0,255,136,.2)':diffUnd>0?'rgba(255,214,0,.2)':'rgba(255,34,68,.2)'};border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:9px;letter-spacing:1px;color:${diffClr};font-weight:700;margin-bottom:4px;">DIFERENCIA</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${diffClr};">${diffUnd===0?'✓':Math.abs(diffUnd)}</div>
+          <div style="font-size:9px;color:${diffClr};">${diffUnd===0?'CUADRA':diffUnd>0?'SOBRAN':'FALTAN'}</div>
+          ${diffRD!==0?`<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${diffClr};margin-top:3px;">${diffRD>0?'+':''}${fmtRD(Math.abs(diffRD))}</div>`:''}
+        </div>
+      </div>
+    </div>`;
+
   document.getElementById('cmp-detail').innerHTML=rows.map(r=>{
     let cls,icon,dlbl,dclr;
     if(r.diff===0){cls='ok';icon='✅';dlbl='CUADRA';dclr='var(--green)';}
@@ -1266,37 +1323,66 @@ function showDayDetail(date) {
   const d=history[date]; let html='';
 
   // CF Section
+  const tCF = d.cf ? cfTotals(d.cf.productos) : {und:0,rd:0};
   if(d.cf){
     html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid rgba(0,212,255,.2);">🏭 CUARTO FRÍO</div>`;
-    html+=`<div class="tbl-wrap" style="margin-bottom:16px;"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th><th>RD$</th></tr></thead><tbody>`;
-    let cfTotal=0;
+    html+=`<div class="tbl-wrap" style="margin-bottom:10px;"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>CAJAS</th><th>UND</th><th>TOTAL</th><th>RD$</th></tr></thead><tbody>`;
     html+=d.cf.productos.map(p=>{
       const sub=(priceConfig[p.nombre]||0)*p.total;
-      cfTotal+=sub;
-      return `<tr><td class="pname">${p.nombre}</td><td>${p.cajas||0}</td><td>${p.unidades||0}</td><td style="font-family:'Share Tech Mono',monospace;color:var(--green);">${p.total}</td><td style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);">${sub>0?'RD$'+sub.toLocaleString('es-DO'):'-'}</td></tr>`;
+      return `<tr><td class="pname">${p.nombre}</td><td>${p.cajas||0}</td><td>${p.unidades||0}</td><td style="font-family:'Share Tech Mono',monospace;color:var(--green);">${p.total}</td><td style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);">${sub>0?fmtRD(sub):'-'}</td></tr>`;
     }).join('');
     html+=`</tbody></table></div>`;
-    if(cfTotal>0) html+=`<div style="text-align:right;font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--green);margin-bottom:16px;font-weight:700;">Total C.Frío: RD$ ${cfTotal.toLocaleString('es-DO',{minimumFractionDigits:2})}</div>`;
+    html+=`<div class="total-box" style="margin-bottom:16px;"><div><div class="total-label">TOTAL C.FRÍO</div><div style="font-size:10px;color:var(--muted);">${tCF.und} unidades recibidas</div></div><div class="total-value">${fmtRD(tCF.rd)}</div></div>`;
   }
 
   // Despacho Section - per chofer
+  const tD = d.despacho?.length ? despTotals(d.despacho) : {und:0,rd:0};
   if(d.despacho?.length){
     html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);letter-spacing:2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid rgba(255,140,0,.2);">🚚 DESPACHO POR CHOFER</div>`;
     d.despacho.forEach(e=>{
-      let choferTotal=0;
+      const eT=entryTotals(e);
       html+=`<div style="margin-bottom:14px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--cyan);letter-spacing:2px;">${e.chofer} <span class="badge bo" style="font-size:11px;">${e.ficha||'S/F'}</span></div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${e.hora}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${e.hora} · ${eT.und} und${eT.rd>0?' · '+fmtRD(eT.rd):''}</div>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>PRODUCTO</th><th>CANT</th><th>CAJAS</th><th>SUELTAS</th><th>RD$</th></tr></thead><tbody>`;
       e.productos.forEach(p=>{
         const sub=(priceConfig[p.nombre]||0)*(p.cantidad||0);
-        choferTotal+=sub;
-        html+=`<tr><td class="pname">${p.nombre}</td><td style="font-family:'Share Tech Mono',monospace;">${p.cantidad||0}</td><td><span class="badge bg">${p.cajas||0}</span></td><td><span class="badge bo">${p.sueltas||0}</span></td><td style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);">${sub>0?'RD$'+sub.toLocaleString('es-DO'):'-'}</td></tr>`;
+        html+=`<tr><td class="pname">${p.nombre}</td><td style="font-family:'Share Tech Mono',monospace;">${p.cantidad||0}</td><td><span class="badge bg">${p.cajas||0}</span></td><td><span class="badge bo">${p.sueltas||0}</span></td><td style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);">${sub>0?fmtRD(sub):'-'}</td></tr>`;
       });
       html+=`</tbody></table></div>`;
-      if(choferTotal>0) html+=`<div style="text-align:right;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--green);margin-top:6px;">Total: RD$ ${choferTotal.toLocaleString('es-DO',{minimumFractionDigits:2})}</div>`;
+      if(eT.rd>0) html+=`<div style="text-align:right;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--green);margin-top:5px;">Subtotal: ${fmtRD(eT.rd)}</div>`;
       html+=`</div>`;
     });
+    html+=`<div class="total-box" style="margin-bottom:10px;"><div><div class="total-label">TOTAL CHOFERES</div><div style="font-size:10px;color:var(--muted);">${tD.und} unidades despachadas · ${d.despacho.length} facturas</div></div><div class="total-value">${fmtRD(tD.rd)}</div></div>`;
+  }
+
+  // Resumen comparativo del día
+  if(d.cf || d.despacho?.length){
+    const diffUnd=tCF.und-tD.und; const diffRD=tCF.rd-tD.rd;
+    const diffClr=diffUnd===0?'var(--green)':diffUnd>0?'var(--yellow)':'var(--red)';
+    html+=`<div style="background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:12px;margin-top:4px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--text);margin-bottom:10px;">RESUMEN DEL DÍA</div>
+      <div style="display:flex;gap:7px;">
+        <div style="flex:1;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:9px;text-align:center;">
+          <div style="font-size:9px;color:var(--cyan);font-weight:700;letter-spacing:1px;">🏭 C.FRÍO</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--cyan);">${tCF.und}</div>
+          <div style="font-size:9px;color:var(--muted);">und</div>
+          ${tCF.rd>0?`<div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);">${fmtRD(tCF.rd)}</div>`:''}
+        </div>
+        <div style="flex:1;background:rgba(255,140,0,.06);border:1px solid rgba(255,140,0,.2);border-radius:8px;padding:9px;text-align:center;">
+          <div style="font-size:9px;color:var(--orange);font-weight:700;letter-spacing:1px;">🚚 CHOFERES</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);">${tD.und}</div>
+          <div style="font-size:9px;color:var(--muted);">und</div>
+          ${tD.rd>0?`<div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);">${fmtRD(tD.rd)}</div>`:''}
+        </div>
+        <div style="flex:1;background:${diffUnd===0?'rgba(0,255,136,.06)':diffUnd>0?'rgba(255,214,0,.06)':'rgba(255,34,68,.06)'};border:1px solid ${diffUnd===0?'rgba(0,255,136,.2)':diffUnd>0?'rgba(255,214,0,.2)':'rgba(255,34,68,.2)'};border-radius:8px;padding:9px;text-align:center;">
+          <div style="font-size:9px;color:${diffClr};font-weight:700;letter-spacing:1px;">DIFERENCIA</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${diffClr};">${diffUnd===0?'✓':Math.abs(diffUnd)}</div>
+          <div style="font-size:9px;color:${diffClr};">${diffUnd===0?'CUADRA':diffUnd>0?'SOBRAN':'FALTAN'}</div>
+          ${diffRD!==0?`<div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:${diffClr};">${diffRD>0?'+':''}${fmtRD(Math.abs(diffRD))}</div>`:''}
+        </div>
+      </div>
+    </div>`;
   }
 
   if(!html) html='<p style="color:var(--muted);">Sin datos para este día.</p>';
