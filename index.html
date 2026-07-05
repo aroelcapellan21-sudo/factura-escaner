@@ -700,12 +700,14 @@ async function fbSaveHistory(date){
 }
 async function fbSaveDespachoFB(){
   if(!fbOnline) return;
-  try{ await db.collection('session').doc('despacho').set({entries:despacho,updated:Date.now()}); }
+  // merge:true: session/despacho también lo escribe el Hub (Despachador);
+  // no pisar sus campos (cuartoFrio/totalDespachos/etc).
+  try{ await db.collection('session').doc('despacho').set({entries:despacho,updated:Date.now()},{merge:true}); }
   catch(e){ console.warn('fbSaveDespacho',e); }
 }
 async function fbSaveDriver(normKey, data){
   if(!fbOnline) return;
-  try{ await db.collection('drivers').doc(normKey).set(data); }
+  try{ await db.collection('drivers').doc(normKey).set(data,{merge:true}); }
   catch(e){ console.warn('fbSaveDriver',e); }
 }
 let _fbCfgTimer=null;
@@ -713,12 +715,14 @@ async function fbSaveConfigFB(){
   if(!fbOnline) return;
   clearTimeout(_fbCfgTimer);
   _fbCfgTimer=setTimeout(async()=>{
+    // merge:true: config/main también lo escribe el Hub (despachadorActivo,
+    // nombreEmpresa, alertaWarning/Critical, etc); no pisar esos campos (1.3).
     try{ await db.collection('config').doc('main').set({
       productConfig,priceConfig,
       product_order:JSON.parse(localStorage.getItem('fs_product_order')||'[]'),
       driver_order:JSON.parse(localStorage.getItem('fs_driver_order')||'[]'),
       driver_list:JSON.parse(localStorage.getItem('fs_driver_list')||'[]')
-    }); }
+    },{merge:true}); }
     catch(e){ console.warn('fbSaveConfig',e); }
   },1500);
 }
